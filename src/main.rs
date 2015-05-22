@@ -10,27 +10,36 @@ use html5ever_dom_sink::common::{NodeEnum, Element};
 use html5ever_dom_sink::rcdom::{RcDom, Handle};
 
 fn print_urls(handle: Handle) {
+    let anchor_tags = get_elements_by_name(handle, "a");
+
+    for node in anchor_tags {
+        match node {
+            Element(_, ref attrs) => {
+                println!("attrs: {:?}", attrs);
+            }
+            _ => ()
+        }
+    }
+}
+
+// Crude tree walker rather than using a full-blown CSS selector library.
+fn get_elements_by_name(handle: Handle, element_name: &str) -> Vec<NodeEnum> {
+    let mut elements = Vec::new();
+
     let node = handle.borrow();
 
     match node.node {
         Element(ref name, ref attrs) => {
-            print!("<{}", name.local);
-            for attr in attrs.iter() {
-                print!(" {}=\"{}\"", attr.name.local, attr.value);
+            if name.local.as_slice() == element_name {
+                elements.push(Element(name.clone(), attrs.clone()));
             }
-            println!(">");
         }
         _ => ()
     }
 
     for child in node.children.iter() {
-        print_urls(child.clone());
+        get_elements_by_name(child.clone(), element_name);
     }
-}
-
-// Crude tree walker rather than using a full-blown CSS selector library.
-fn get_elements_by_name(handle: Handle, name: String) -> Vec<NodeEnum> {
-    let mut elements = Vec::new();
 
     elements
 }
