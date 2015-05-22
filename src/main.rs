@@ -1,42 +1,47 @@
-extern crate hyper;
+extern crate html5ever;
+extern crate html5ever_dom_sink;
 
-use hyper::Client;
-use hyper::status::StatusCode;
+use std::io::{self, Read};
+use std::default::Default;
+use std::string::String;
 
-use std::env;
+use html5ever::{parse, one_input};
+use html5ever_dom_sink::common::{NodeEnum, Element};
+use html5ever_dom_sink::rcdom::{RcDom, Handle};
 
-#[derive(Debug)]
-enum UrlState {
-    Accessible,
-    BadPath,
-    BadDomain
+fn print_urls(handle: Handle) {
+    let node = handle.borrow();
+
+    match node.node {
+        Element(ref name, ref attrs) => {
+            print!("<{}", name.local);
+            for attr in attrs.iter() {
+                print!(" {}=\"{}\"", attr.name.local, attr.value);
+            }
+            println!(">");
+        }
+        _ => ()
+    }
+
+    for child in node.children.iter() {
+        print_urls(child.clone());
+    }
 }
 
-fn url_accessible(url: &str) -> UrlState {
-    let mut client = Client::new();
+// Crude tree walker rather than using a full-blown CSS selector library.
+fn get_elements_by_name(handle: Handle, name: String) -> Vec<NodeEnum> {
+    let mut elements = Vec::new();
 
-    let response = client.get(url).send();
+    elements
+}
 
-    match response {
-        Ok(r) => {
-            match r.status {
-                StatusCode::Ok => UrlState::Accessible,
-                // TODO: allow redirects unless they're circular
-                _ => UrlState::BadPath
-            }
-        }
-        Err(_) => UrlState::BadDomain
-    }
+fn parse_html(source: String) -> RcDom {
+    parse(one_input(source), Default::default())
 }
 
 fn main() {
-    let args: Vec<_> = env::args().collect();
-    if args.len() > 1 {
-        let ref url = args[1];
-        println!("url status: {:?}", url_accessible(url));
-
-    } else {
-        // TODO: exit non-zero.
-        println!("Please provide an URL.")
-    }
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).unwrap();
+    let dom = parse_html(input);
+    print_urls(dom.document);
 }

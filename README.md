@@ -7,6 +7,9 @@ GPL v2 or later license.
 
 ## Usage
 
+This project must be run with Rust nightly, due to html5ever depending
+on it.
+
 ```bash
 $ cargo build
 $ target/debug/linkdoc http://www.example.com
