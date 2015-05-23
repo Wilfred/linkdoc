@@ -4,9 +4,15 @@ extern crate html5ever_dom_sink;
 use std::string::String;
 
 use html5ever::tokenizer::Attribute;
+use html5ever::{parse, one_input};
+use html5ever_dom_sink::rcdom::RcDom;
 
 use self::html5ever_dom_sink::common::{NodeEnum, Element};
 use self::html5ever_dom_sink::rcdom::Handle;
+
+pub fn parse_html(source: String) -> RcDom {
+    parse(one_input(source), Default::default())
+}
 
 pub fn get_urls(handle: Handle) -> Vec<String> {
     let mut urls = Vec::new();
