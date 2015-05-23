@@ -12,5 +12,5 @@ on it.
 
 ```bash
 $ cargo build
-$ target/debug/linkdoc http://www.example.com
+$ curl http://www.example.com | cargo run
 ```
