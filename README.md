@@ -12,5 +12,5 @@ on it.
 
 ```bash
 $ cargo build
-$ curl http://www.example.com | cargo run
+$ cargo run http://www.wilfred.me.uk
 ```
