@@ -12,3 +12,6 @@ git = "https://github.com/servo/html5ever"
 [dependencies.html5ever_dom_sink]
 git = "https://github.com/servo/html5ever"
 path = "dom_sink"
+
+[dependencies.url]
+git = "https://github.com/servo/rust-url"

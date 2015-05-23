@@ -5,6 +5,7 @@ dependencies = [
  "html5ever 0.0.0 (git+https://github.com/servo/html5ever)",
  "html5ever_dom_sink 0.0.0 (git+https://github.com/servo/html5ever)",
  "hyper 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 0.2.34 (git+https://github.com/servo/rust-url)",
 ]
 
 [[package]]
@@ -287,6 +288,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "unicase"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "url"
+version = "0.2.34"
+source = "git+https://github.com/servo/rust-url#911c805991a4e77056e72e3c849655e174d70e64"
+dependencies = [
+ "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "url"
