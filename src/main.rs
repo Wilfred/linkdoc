@@ -5,6 +5,7 @@ use std::env;
 
 mod parsing;
 mod fetching;
+mod crawling;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -13,8 +14,10 @@ fn main() {
         let html_src = fetching::fetch_url(url);
         let dom = parsing::parse_html(html_src);
         
-        for url in parsing::get_urls(dom.document) {
+        for path in parsing::get_urls(dom.document) {
             println!("URL: {}", url);
+            // TODO: get_urls should return absolute urls.
+            println!("URL parsed: {:?}", crawling::parse_url(&url, &path));
         }
 
     } else {
