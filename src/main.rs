@@ -15,9 +15,13 @@ fn main() {
         let dom = parsing::parse_html(html_src);
         
         for path in parsing::get_urls(dom.document) {
-            println!("URL: {}", url);
             // TODO: get_urls should return absolute urls.
-            println!("URL parsed: {:?}", crawling::parse_url(&url, &path));
+
+            // FIXME: this assumes assumes `url` is a domain without a path.
+            let mut absolute_url = url.to_string();
+            absolute_url = absolute_url + &path;
+
+            println!("URL parsed: {:?}\n", fetching::url_status(&absolute_url));
         }
 
     } else {
