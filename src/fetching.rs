@@ -8,7 +8,7 @@ use self::core::fmt;
 use self::hyper::Client;
 use self::hyper::header::Connection;
 use self::hyper::status::StatusCode;
-use self::url::{Url};
+use self::url::{Url, UrlParser};
 
 #[derive(Debug)]
 pub enum UrlState {
@@ -37,12 +37,15 @@ impl fmt::Display for UrlState {
     }
 }
 
-pub fn url_status(url: &str) -> UrlState {
+pub fn url_status(base_url: &Url, path: &str) -> UrlState {
     let mut client = Client::new();
 
-    return match Url::parse(url) {
+    let mut raw_url_parser = UrlParser::new();
+    let url_parser = raw_url_parser.base_url(base_url);
+
+    return match url_parser.parse(path) {
         Ok(url_value) => {
-            let response = client.get(url).send();
+            let response = client.get(path).send();
 
             match response {
                 Ok(r) => {
@@ -55,17 +58,18 @@ pub fn url_status(url: &str) -> UrlState {
                 Err(_) => UrlState::BadDomain(url_value)
             }
         },
-        Err(_) => UrlState::Malformed(url.to_string())
+        Err(_) => UrlState::Malformed(path.to_string())
     }
 
 }
 
-pub fn fetch_url(url: &str) -> String {
+pub fn fetch_url(url: &Url) -> String {
     // Create a client.
     let mut client = Client::new();
 
     // Creating an outgoing request.
-    let mut res = client.get(url)
+    let url_string = url.serialize();
+    let mut res = client.get(&url_string)
         // set a header
         .header(Connection::close())
         // let 'er go!
