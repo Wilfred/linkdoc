@@ -5,7 +5,6 @@ use std::env;
 
 mod parsing;
 mod fetching;
-mod crawling;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
