@@ -45,7 +45,8 @@ pub fn url_status(base_url: &Url, path: &str) -> UrlState {
 
     return match url_parser.parse(path) {
         Ok(url_value) => {
-            let response = client.get(path).send();
+            let url_string = url_value.serialize();
+            let response = client.get(&url_string).send();
 
             match response {
                 Ok(r) => {
