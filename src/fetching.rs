@@ -13,7 +13,7 @@ use self::url::{Url, UrlParser};
 #[derive(Debug)]
 pub enum UrlState {
     Accessible(Url),
-    BadPath(Url),
+    BadStatus(Url, StatusCode),
     BadDomain(Url),
     Malformed(String)
 }
@@ -24,8 +24,8 @@ impl fmt::Display for UrlState {
             &UrlState::Accessible(ref url) => {
                 format!("✔ {}", url).fmt(f)
             }
-            &UrlState::BadPath(ref url) => {
-                format!("✘ {} (404)", url).fmt(f)
+            &UrlState::BadStatus(ref url, ref status) => {
+                format!("✘ {} ({})", url, status).fmt(f)
             }
             &UrlState::BadDomain(ref url) => {
                 format!("✘ {} (no domain)", url).fmt(f)
@@ -53,7 +53,9 @@ pub fn url_status(base_url: &Url, path: &str) -> UrlState {
                     match r.status {
                         StatusCode::Ok => UrlState::Accessible(url_value),
                         // TODO: allow redirects unless they're circular
-                        _ => UrlState::BadPath(url_value)
+                        _ => {
+                            UrlState::BadStatus(url_value, r.status)
+                        }
                     }
                 }
                 Err(_) => UrlState::BadDomain(url_value)
