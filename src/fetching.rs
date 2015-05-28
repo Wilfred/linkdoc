@@ -14,7 +14,7 @@ use self::url::{Url, UrlParser};
 pub enum UrlState {
     Accessible(Url),
     BadStatus(Url, StatusCode),
-    BadDomain(Url),
+    ConnectionFailed(Url),
     Malformed(String)
 }
 
@@ -27,8 +27,8 @@ impl fmt::Display for UrlState {
             &UrlState::BadStatus(ref url, ref status) => {
                 format!("✘ {} ({})", url, status).fmt(f)
             }
-            &UrlState::BadDomain(ref url) => {
-                format!("✘ {} (no domain)", url).fmt(f)
+            &UrlState::ConnectionFailed(ref url) => {
+                format!("✘ {} (connection failed)", url).fmt(f)
             }
             &UrlState::Malformed(ref url) => {
                 format!("✘ {} (malformed)", url).fmt(f)
@@ -58,7 +58,7 @@ pub fn url_status(base_url: &Url, path: &str) -> UrlState {
                         }
                     }
                 }
-                Err(_) => UrlState::BadDomain(url_value)
+                Err(_) => UrlState::ConnectionFailed(url_value)
             }
         },
         Err(_) => UrlState::Malformed(path.to_string())
