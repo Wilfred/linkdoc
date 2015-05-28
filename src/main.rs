@@ -1,3 +1,4 @@
+#![feature(core)]
 extern crate html5ever;
 extern crate html5ever_dom_sink;
 
@@ -20,7 +21,7 @@ fn main() {
             let mut absolute_url = url.to_string();
             absolute_url = absolute_url + &path;
 
-            println!("URL parsed: {:?}\n", fetching::url_status(&absolute_url));
+            println!("{}", fetching::url_status(&absolute_url));
         }
 
     } else {

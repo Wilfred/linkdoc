@@ -1,7 +1,9 @@
+extern crate core;
 extern crate hyper;
 extern crate url;
 
 use std::io::Read;
+use self::core::fmt;
 
 use self::hyper::Client;
 use self::hyper::header::Connection;
@@ -14,6 +16,25 @@ pub enum UrlState {
     BadPath(Url),
     BadDomain(Url),
     Malformed(String)
+}
+
+impl fmt::Display for UrlState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &UrlState::Accessible(ref url) => {
+                format!("✔ {}", url).fmt(f)
+            }
+            &UrlState::BadPath(ref url) => {
+                format!("✘ {} (404)", url).fmt(f)
+            }
+            &UrlState::BadDomain(ref url) => {
+                format!("✘ {} (no domain)", url).fmt(f)
+            }
+            &UrlState::Malformed(ref url) => {
+                format!("✘ {} (malformed)", url).fmt(f)
+            }
+        }
+    }
 }
 
 pub fn url_status(url: &str) -> UrlState {
