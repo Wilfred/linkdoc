@@ -4,8 +4,11 @@ extern crate html5ever;
 extern crate html5ever_dom_sink;
 
 use std::env;
+use std::io::stdout;
+use std::io::Write;
 use url::{Url};
 
+use fetching::UrlState;
 
 mod parsing;
 mod fetching;
@@ -18,10 +21,24 @@ fn main() {
         
         let html_src = fetching::fetch_url(&start_url);
         let dom = parsing::parse_html(html_src);
+
+        let mut accessible_count = 0;
+        let mut error_count = 0;
         
         for path in parsing::get_urls(dom.document) {
             // TODO: we should split out the domain and only pass that to url_status
-            println!("{}", fetching::url_status(&start_url, &path));
+            match fetching::url_status(&start_url, &path) {
+                UrlState::Accessible(_) => {
+                    accessible_count += 1;
+                }
+                status @ _ => {
+                    error_count += 1;
+                    println!("{}", status);
+                }
+            }
+
+            print!("Accessible: {}, Errors: {}\r", accessible_count, error_count);
+            stdout().flush().unwrap();
         }
 
     } else {
