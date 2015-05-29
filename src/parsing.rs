@@ -30,7 +30,7 @@ pub fn get_urls(handle: Handle) -> Vec<String> {
                     }
                 }
             }
-            _ => ()
+            _ => unreachable!()
         }
     }
 
