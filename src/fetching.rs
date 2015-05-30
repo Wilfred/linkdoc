@@ -50,18 +50,17 @@ pub fn url_status(base_url: &Url, path: &str) -> UrlState {
 
             match response {
                 Ok(r) => {
-                    match r.status {
-                        StatusCode::Ok => UrlState::Accessible(url_value),
+                    if let StatusCode::Ok = r.status {
+                        UrlState::Accessible(url_value)xo
+                    } else {
                         // TODO: allow redirects unless they're circular
-                        _ => {
-                            UrlState::BadStatus(url_value, r.status)
-                        }
+                        UrlState::BadStatus(url_value, r.status)
                     }
                 }
                 Err(_) => UrlState::ConnectionFailed(url_value)
             }
         },
-        Err(_) => UrlState::Malformed(path.to_string())
+        Err(_) => UrlState::Malformed(path.to_owned())
     }
 
 }
