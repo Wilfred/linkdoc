@@ -1,4 +1,7 @@
 #![feature(core)]
+#![feature(plugin)]
+#![plugin(clippy)]
+
 extern crate url;
 extern crate html5ever;
 extern crate html5ever_dom_sink;

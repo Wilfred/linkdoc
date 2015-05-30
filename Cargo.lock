@@ -2,6 +2,7 @@
 name = "linkdoc"
 version = "0.1.0"
 dependencies = [
+ "clippy 0.0.4 (git+https://github.com/Manishearth/rust-clippy)",
  "html5ever 0.0.0 (git+https://github.com/servo/html5ever)",
  "html5ever_dom_sink 0.0.0 (git+https://github.com/servo/html5ever)",
  "hyper 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -12,6 +13,11 @@ dependencies = [
 name = "bitflags"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "clippy"
+version = "0.0.4"
+source = "git+https://github.com/Manishearth/rust-clippy#b99fab8162a13b49b68a2105520ab0645c51897e"
 
 [[package]]
 name = "cookie"
