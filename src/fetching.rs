@@ -51,7 +51,7 @@ pub fn url_status(base_url: &Url, path: &str) -> UrlState {
             match response {
                 Ok(r) => {
                     if let StatusCode::Ok = r.status {
-                        UrlState::Accessible(url_value)xo
+                        UrlState::Accessible(url_value)
                     } else {
                         // TODO: allow redirects unless they're circular
                         UrlState::BadStatus(url_value, r.status)
