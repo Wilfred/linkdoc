@@ -12,9 +12,11 @@ use std::io::Write;
 use url::{Url};
 
 use fetching::UrlState;
+use unique::Unique;
 
 mod parsing;
 mod fetching;
+mod unique;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -28,7 +30,7 @@ fn main() {
         let mut accessible_count = 0;
         let mut error_count = 0;
         
-        for path in parsing::get_urls(dom.document) {
+        for path in parsing::get_urls(dom.document).into_iter().unique() {
             // TODO: we should split out the domain and only pass that to url_status
             match fetching::url_status(&start_url, &path) {
                 UrlState::Accessible(_) => {
