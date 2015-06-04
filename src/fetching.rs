@@ -75,12 +75,12 @@ pub fn fetch_url(url: &Url) -> String {
 
     // Creating an outgoing request.
     let url_string = url.serialize();
-    let mut res = client.get(&url_string).send().unwrap();
+    let mut res = client.get(&url_string).send().ok().expect("could not fetch URL");
 
     // Read the Response.
     let mut body = String::new();
-    // FIXME: remove all the .unwrap calls in this function.
-    res.read_to_string(&mut body).unwrap();
+    res.read_to_string(&mut body).ok().expect(
+        &format!("could not read response from {}", url_string));
 
     body
 }
