@@ -23,8 +23,10 @@ fn main() {
         // TODO: a proper error message here.
         let start_url = Url::parse(start_url_string).unwrap();
 
-        // TODO: use the actual path given
-        for url_state in crawling::crawl(start_url.domain().unwrap(), "/") {
+        let domain = start_url.domain().expect("I can't find a domain in your URL");
+        let path_components = start_url.path().expect("I can't find a path in your URL");
+
+        for url_state in crawling::crawl(&domain, &path_components.connect("/")) {
             match url_state {
                 UrlState::Accessible(_) => (),
                 status @ _ => {
