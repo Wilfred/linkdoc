@@ -11,23 +11,28 @@ use url::{Url};
 
 use fetching::UrlState;
 
-mod parsing;
 mod fetching;
-mod unique;
+mod parsing;
 mod crawling;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() > 1 {
         let ref start_url_string = args[1];
+
+        // TODO: a proper error message here.
         let start_url = Url::parse(start_url_string).unwrap();
 
-        let results = crawling::crawl(start_url.domain().unwrap(), "/");
-        let bad_results: Vec<_> = results.into_iter().filter(|state| match state {
-            &UrlState::Accessible(..) => false,
-            _ => true
-        }).collect();
-        println!("failed: {:?}", bad_results);
+        // TODO: use the actual path given
+        for url_state in crawling::crawl(start_url.domain().unwrap(), "/") {
+            match url_state {
+                UrlState::Accessible(_) => (),
+                status @ _ => {
+                    println!("{}", status);
+                }
+
+            }
+        }
 
     } else {
         // TODO: exit non-zero and print proper usage.

@@ -1,41 +1,62 @@
+use std::io::stdout;
+use std::io::Write;
 use std::collections::HashSet;
 use fetching::{UrlState, url_status, fetch_all_urls};
 
-/// Starting at start_url, recursively visit all the URLs which match
-/// domain, and return their URL status.
-pub fn crawl(domain: &str, start_url: &str) -> Vec<UrlState> {
-    let mut crawled: HashSet<String> = HashSet::new();
+/// Starting at start_url, recursively iterate over all the URLs which match
+/// this domain, and return their URL status.
+pub struct Crawler {
+    domain: String,
     
+    visited: HashSet<String>,
     // TODO: use a proper deque.
-    let mut to_visit = Vec::new();
-    to_visit.push(start_url.to_owned());
+    to_visit: Vec<String>,
+}
 
-    let mut url_states = Vec::new();
+impl Iterator for Crawler {
+    type Item = UrlState;
 
-    while !to_visit.is_empty() {
-        // TODO: this is LIFO and we should use FIFO.
-        let current = to_visit.pop().unwrap();
-
-        if !crawled.contains(&current) {
-            crawled.insert(current.to_owned());
+    fn next(&mut self) -> Option<UrlState> {
+        while !self.to_visit.is_empty() {
+            let current = self.to_visit.pop().unwrap();
             
-            let state = url_status(domain, &current);
-            println!("{}", state);
-            url_states.push(state.clone());
+            if !self.visited.contains(&current) {
+                self.visited.insert(current.to_owned());
 
-            // TODO: we are fetching the URL twice, which is silly.
+                // Ideally we wouldn't be so noisy. However, it's not
+                // possible to do timeouts with Hyper:
+                // https://github.com/hyperium/hyper/issues/315
+                // so it's better to see what's going on than just hang.
+                print!("Checked {} so far, now checking: {} \r", self.visited.len(), &current);
+                stdout().flush().unwrap();
+                
+                let state = url_status(&self.domain, &current);
+                // TODO: we are fetching the URL twice, which is silly.
 
-            // If it's accessible and it's on the same domain:
-            if let UrlState::Accessible(ref url) = state {
-                if url.domain() == Some(domain) {
-                    // then fetch it and append all the URLs found.
-                    for new_url in fetch_all_urls(&url) {
-                        to_visit.push(new_url);
+                // If it's accessible and it's on the same domain:
+                if let UrlState::Accessible(ref url) = state.clone() {
+                    if url.domain() == Some(&self.domain) {
+                        // then fetch it and append all the URLs found.
+                        for new_url in fetch_all_urls(&url) {
+                            self.to_visit.push(new_url);
+                        }
                     }
                 }
+
+                return Some(state);
             }
         }
+        None
     }
+}
 
-    url_states
+pub fn crawl(domain: &str, start_url: &str) -> Crawler {
+    let mut to_visit = Vec::new();
+    to_visit.push(start_url.to_owned());
+    
+    Crawler {
+        domain: domain.to_owned(),
+        visited: HashSet::new(),
+        to_visit: to_visit
+    }
 }
