@@ -79,10 +79,14 @@ pub fn fetch_url(url: &Url) -> String {
 
     // Read the Response.
     let mut body = String::new();
-    res.read_to_string(&mut body).ok().expect(
-        &format!("could not read response from {}", url_string));
-
-    body
+    match res.read_to_string(&mut body) {
+        // If we can read it as a UTF-8 string, just return that.
+        Ok(_) => body,
+        // If we can't, it's binary data, so just return an empty string.
+        // TODO: It would be cleaner if this function returned bytes.
+        // This also assumes that HTML is never in any other encoding.
+        Err(_) => String::new()
+    }
 }
 
 /// Fetch the requested URL, and return a list of all the URLs on the
