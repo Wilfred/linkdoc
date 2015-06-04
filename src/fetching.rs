@@ -10,6 +10,8 @@ use self::hyper::header::Connection;
 use self::hyper::status::StatusCode;
 use self::url::{Url, UrlParser};
 
+use parsing;
+
 #[derive(Debug,Clone)]
 pub enum UrlState {
     Accessible(Url),
@@ -86,4 +88,14 @@ pub fn fetch_url(url: &Url) -> String {
     res.read_to_string(&mut body).unwrap();
 
     body
+}
+
+/// Fetch the requested URL, and return a list of all the URLs on the
+/// page. We deliberately return strings because we're also interested
+/// in malformed URLs.
+pub fn fetch_all_urls(url: &Url) -> Vec<String> {
+    let html_src = fetch_url(url);
+    let dom = parsing::parse_html(html_src);
+
+    parsing::get_urls(dom.document)
 }
