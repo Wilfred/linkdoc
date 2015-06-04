@@ -13,6 +13,22 @@ pub struct Crawler {
     to_visit: Vec<String>,
 }
 
+/// Return a string that is exactly the size specified. If it's too
+/// big, truncate, otherwise pad with spaces.
+fn exact_size(s: &str, size: i64) -> String {
+    let mut result = s.to_owned();
+    let size_delta = result.chars().count() as i64 - size;
+    
+    if size_delta > 0 {
+        result.truncate(size as usize);
+    } else {
+        for _ in 0..size_delta.abs() {
+            result.push(' ');
+        }
+    }
+    result
+}
+
 impl Iterator for Crawler {
     type Item = UrlState;
 
@@ -27,7 +43,8 @@ impl Iterator for Crawler {
                 // possible to do timeouts with Hyper:
                 // https://github.com/hyperium/hyper/issues/315
                 // so it's better to see what's going on than just hang.
-                print!("Checked {} so far, now checking: {} \r", self.visited.len(), &current);
+                let short_url = exact_size(&current, 60);
+                print!("Checked {}, next: {}\r", self.visited.len(), &short_url);
                 stdout().flush().unwrap();
                 
                 let state = url_status(&self.domain, &current);
