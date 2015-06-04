@@ -37,14 +37,17 @@ impl fmt::Display for UrlState {
     }
 }
 
-pub fn url_status(base_url: &Url, path: &str) -> UrlState {
-    let mut client = Client::new();
+pub fn url_status(domain: &str, path: &str) -> UrlState {
+    let base_url_string = format!("http://{}", domain);
+    let base_url = Url::parse(&base_url_string).unwrap();
 
     let mut raw_url_parser = UrlParser::new();
-    let url_parser = raw_url_parser.base_url(base_url);
+    let url_parser = raw_url_parser.base_url(&base_url);
 
     return match url_parser.parse(path) {
         Ok(url_value) => {
+            let mut client = Client::new();
+
             let url_string = url_value.serialize();
             let response = client.get(&url_string).send();
 

@@ -32,7 +32,7 @@ fn main() {
         
         for path in parsing::get_urls(dom.document).into_iter().unique() {
             // TODO: we should split out the domain and only pass that to url_status
-            match fetching::url_status(&start_url, &path) {
+            match fetching::url_status(start_url.domain().unwrap(), &path) {
                 UrlState::Accessible(_) => {
                     accessible_count += 1;
                 }
