@@ -10,7 +10,7 @@ use self::hyper::header::Connection;
 use self::hyper::status::StatusCode;
 use self::url::{Url, UrlParser};
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum UrlState {
     Accessible(Url),
     BadStatus(Url, StatusCode),
