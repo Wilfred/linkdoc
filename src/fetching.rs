@@ -6,7 +6,6 @@ use std::io::Read;
 use self::core::fmt;
 
 use self::hyper::Client;
-use self::hyper::header::Connection;
 use self::hyper::status::StatusCode;
 use self::url::{Url, UrlParser};
 
@@ -76,11 +75,7 @@ pub fn fetch_url(url: &Url) -> String {
 
     // Creating an outgoing request.
     let url_string = url.serialize();
-    let mut res = client.get(&url_string)
-        // set a header
-        .header(Connection::close())
-        // let 'er go!
-        .send().unwrap();
+    let mut res = client.get(&url_string).send().unwrap();
 
     // Read the Response.
     let mut body = String::new();
