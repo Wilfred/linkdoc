@@ -1,6 +1,7 @@
 use std::io::stdout;
 use std::io::Write;
 use std::collections::HashSet;
+use std::sync::Mutex;
 use fetching::{UrlState, url_status, fetch_all_urls};
 
 /// Starting at start_url, recursively iterate over all the URLs which match
@@ -8,9 +9,9 @@ use fetching::{UrlState, url_status, fetch_all_urls};
 pub struct Crawler {
     domain: String,
     
-    visited: HashSet<String>,
+    visited: Mutex<HashSet<String>>,
     // TODO: use a proper deque.
-    to_visit: Vec<String>,
+    to_visit: Mutex<Vec<String>>,
 }
 
 /// Return a string that is exactly the size specified. If it's too
@@ -33,18 +34,21 @@ impl Iterator for Crawler {
     type Item = UrlState;
 
     fn next(&mut self) -> Option<UrlState> {
-        while !self.to_visit.is_empty() {
-            let current = self.to_visit.pop().unwrap();
+        let mut to_visit = self.to_visit.lock().unwrap();
+        let mut visited = self.visited.lock().unwrap();
+        
+        while !to_visit.is_empty() {
+            let current = to_visit.pop().unwrap();
             
-            if !self.visited.contains(&current) {
-                self.visited.insert(current.to_owned());
+            if !visited.contains(&current) {
+                visited.insert(current.to_owned());
 
                 // Ideally we wouldn't be so noisy. However, it's not
                 // possible to do timeouts with Hyper:
                 // https://github.com/hyperium/hyper/issues/315
                 // so it's better to see what's going on than just hang.
                 let short_url = exact_size(&current, 60);
-                print!("Checked {}, next: {}\r", self.visited.len(), &short_url);
+                print!("Checked {}, next: {}\r", visited.len(), &short_url);
                 stdout().flush().unwrap();
                 
                 let state = url_status(&self.domain, &current);
@@ -55,7 +59,7 @@ impl Iterator for Crawler {
                     if url.domain() == Some(&self.domain) {
                         // then fetch it and append all the URLs found.
                         for new_url in fetch_all_urls(&url) {
-                            self.to_visit.push(new_url);
+                            to_visit.push(new_url);
                         }
                     }
                 }
@@ -72,7 +76,7 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
     
     Crawler {
         domain: domain.to_owned(),
-        visited: HashSet::new(),
-        to_visit: to_visit
+        visited: Mutex::new(HashSet::new()),
+        to_visit: Mutex::new(to_visit)
     }
 }
