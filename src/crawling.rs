@@ -68,8 +68,7 @@ impl Iterator for Crawler {
 }
 
 pub fn crawl(domain: &str, start_url: &str) -> Crawler {
-    let mut to_visit = Vec::new();
-    to_visit.push(start_url.to_owned());
+    let to_visit = vec![start_url.to_owned()];
     
     Crawler {
         domain: domain.to_owned(),
