@@ -7,7 +7,7 @@ use self::core::fmt;
 
 use self::hyper::Client;
 use self::hyper::status::StatusCode;
-use self::url::{Url, UrlParser};
+use self::url::{Url, UrlParser, ParseResult};
 
 use parsing;
 
@@ -42,14 +42,18 @@ impl fmt::Display for UrlState {
     }
 }
 
-pub fn url_status(domain: &str, path: &str) -> UrlState {
+fn build_url(domain: &str, path: &str) -> ParseResult<Url> {
     let base_url_string = format!("http://{}", domain);
     let base_url = Url::parse(&base_url_string).unwrap();
 
     let mut raw_url_parser = UrlParser::new();
     let url_parser = raw_url_parser.base_url(&base_url);
 
-    return match url_parser.parse(path) {
+    url_parser.parse(path)
+}
+
+pub fn url_status(domain: &str, path: &str) -> UrlState {
+    return match build_url(domain, path) {
         Ok(url_value) => {
             let mut client = Client::new();
 
