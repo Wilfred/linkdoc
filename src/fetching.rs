@@ -3,9 +3,12 @@ extern crate hyper;
 extern crate url;
 
 use std::io::Read;
+use std::thread;
+use std::sync::mpsc::channel;
 use self::core::fmt;
 
 use self::hyper::Client;
+use self::hyper::error::Result;
 use self::hyper::status::StatusCode;
 use self::url::{Url, UrlParser, ParseResult};
 
@@ -16,7 +19,7 @@ pub enum UrlState {
     Accessible(Url),
     BadStatus(Url, StatusCode),
     ConnectionFailed(Url),
-    TimedOut(String),
+    TimedOut(Url),
     Malformed(String)
 }
 
@@ -52,25 +55,44 @@ fn build_url(domain: &str, path: &str) -> ParseResult<Url> {
     url_parser.parse(path)
 }
 
+const TIMEOUT_MS: u32 = 5000;
+
 pub fn url_status(domain: &str, path: &str) -> UrlState {
     return match build_url(domain, path) {
-        Ok(url_value) => {
-            let mut client = Client::new();
+        Ok(url) => {
 
-            let url_string = url_value.serialize();
-            let response = client.get(&url_string).send();
+            let (tx, rx) = channel();
+            let request_tx = tx.clone();
+            let url2 = url.clone();
 
-            match response {
-                Ok(r) => {
-                    if let StatusCode::Ok = r.status {
-                        UrlState::Accessible(url_value)
-                    } else {
-                        // TODO: allow redirects unless they're circular
-                        UrlState::BadStatus(url_value, r.status)
+            // Try to do the request.
+            thread::spawn(move || {
+                let mut client = Client::new();
+
+                let url_string = url.serialize();
+                let response = client.get(&url_string).send();
+
+                let _ = request_tx.send(match response {
+                    Ok(r) => {
+                        if let StatusCode::Ok = r.status {
+                            UrlState::Accessible(url)
+                        } else {
+                            // TODO: allow redirects unless they're circular
+                            UrlState::BadStatus(url, r.status)
+                        }
                     }
-                }
-                Err(_) => UrlState::ConnectionFailed(url_value)
-            }
+                    Err(_) => UrlState::ConnectionFailed(url)
+                });
+            });
+
+            // Send a timeout down the channel after a delay.
+            thread::spawn(move || {
+                thread::sleep_ms(TIMEOUT_MS);
+                let _ = tx.send(UrlState::TimedOut(url2));
+            });
+
+            // Take whichever value arrives in the channel first.
+            rx.recv().unwrap()
         },
         Err(_) => UrlState::Malformed(path.to_owned())
     }

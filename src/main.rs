@@ -7,6 +7,8 @@ extern crate html5ever;
 extern crate html5ever_dom_sink;
 
 use std::env;
+use std::io::stdout;
+use std::io::Write;
 use url::{Url};
 
 use fetching::UrlState;
@@ -26,14 +28,22 @@ fn main() {
         let domain = start_url.domain().expect("I can't find a domain in your URL");
         let path_components = start_url.path().expect("I can't find a path in your URL");
 
+        let mut success_count = 0;
+        let mut fail_count = 0;
+
         for url_state in crawling::crawl(&domain, &path_components.connect("/")) {
             match url_state {
-                UrlState::Accessible(_) => (),
+                UrlState::Accessible(_) => {
+                    success_count += 1;
+                },
                 status @ _ => {
+                    fail_count += 1;
                     println!("{}", status);
                 }
-
             }
+
+            print!("Succeeded: {} Failed: {}\r", success_count, fail_count);
+            stdout().flush().unwrap();
         }
 
     } else {
