@@ -16,6 +16,7 @@ pub enum UrlState {
     Accessible(Url),
     BadStatus(Url, StatusCode),
     ConnectionFailed(Url),
+    TimedOut(String),
     Malformed(String)
 }
 
@@ -30,6 +31,9 @@ impl fmt::Display for UrlState {
             }
             &UrlState::ConnectionFailed(ref url) => {
                 format!("✘ {} (connection failed)", url).fmt(f)
+            }
+            &UrlState::TimedOut(ref url) => {
+                format!("✘ {} (timed out)", url).fmt(f)
             }
             &UrlState::Malformed(ref url) => {
                 format!("✘ {} (malformed)", url).fmt(f)
