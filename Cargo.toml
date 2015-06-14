@@ -15,6 +15,3 @@ path = "dom_sink"
 
 [dependencies.url]
 git = "https://github.com/servo/rust-url"
-
-[dependencies.clippy]
-git = "https://github.com/Manishearth/rust-clippy"

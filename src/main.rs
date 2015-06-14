@@ -1,6 +1,5 @@
 #![feature(core)]
 #![feature(plugin)]
-#![plugin(clippy)]
 
 extern crate url;
 extern crate html5ever;
