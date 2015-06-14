@@ -34,7 +34,6 @@ impl Iterator for Crawler {
                     } else {
                         // The channel is currently empty, but we will
                         // more values later.
-                        thread::sleep_ms(100);
                         continue
                     }
                 }
