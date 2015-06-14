@@ -9,7 +9,7 @@ pub struct Crawler {
     // TODO: use a proper deque.
     to_visit: Arc<Mutex<Vec<String>>>,
 
-    active_threads: Arc<Mutex<u32>>,
+    active_threads: Arc<Mutex<i32>>,
 
     url_states: Receiver<UrlState>,
 }
@@ -42,7 +42,7 @@ impl Iterator for Crawler {
     }
 }
 
-const THREADS: u32 = 10;
+const THREADS: i32 = 10;
 
 /// Starting at start_url, recursively iterate over all the URLs which match
 /// the domain, and return an iterator of their URL status.
@@ -84,6 +84,7 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
                 let current = to_visit_val.pop().unwrap();
                 *active_threads_val += 1;
                 drop(to_visit_val);
+                assert!(*active_threads_val <= THREADS);
                 drop(active_threads_val);
 
                 // Lock `visited` and see if we've already visited this URL.
@@ -114,6 +115,7 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
                 // This thread is now done, so decrement the count.
                 let mut active_threads_val = active_threads.lock().unwrap();
                 *active_threads_val -= 1;
+                assert!(*active_threads_val >= 0);
                 drop(active_threads_val);
 
                 tx.send(state).unwrap();
