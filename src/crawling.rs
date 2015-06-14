@@ -5,8 +5,6 @@ use std::thread;
 
 use fetching::{UrlState, url_status, fetch_all_urls};
 
-/// Starting at start_url, recursively iterate over all the URLs which match
-/// the domain, and return their URL status.
 pub struct Crawler {
     // TODO: use a proper deque.
     to_visit: Arc<Mutex<Vec<String>>>,
@@ -46,6 +44,8 @@ impl Iterator for Crawler {
 
 const THREADS: u32 = 10;
 
+/// Starting at start_url, recursively iterate over all the URLs which match
+/// the domain, and return an iterator of their URL status.
 pub fn crawl(domain: &str, start_url: &str) -> Crawler {
     let to_visit = Arc::new(Mutex::new(vec![start_url.to_owned()]));
     let active_threads = Arc::new(Mutex::new(0));
@@ -53,8 +53,6 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
 
     let (tx, rx) = channel();
 
-    // TODO: we may not need all of these in the struct now we're
-    // starting threads in this function.
     let crawler = Crawler {
         to_visit: to_visit.clone(),
         active_threads: active_threads.clone(),

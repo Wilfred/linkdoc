@@ -55,7 +55,7 @@ fn build_url(domain: &str, path: &str) -> ParseResult<Url> {
     url_parser.parse(path)
 }
 
-const TIMEOUT_MS: u32 = 5000;
+const TIMEOUT_MS: u32 = 10000;
 
 pub fn url_status(domain: &str, path: &str) -> UrlState {
     return match build_url(domain, path) {
