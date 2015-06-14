@@ -19,7 +19,7 @@ impl Iterator for Crawler {
 
     fn next(&mut self) -> Option<UrlState> {
         loop {
-            match self.url_states.recv() {
+            match self.url_states.try_recv() {
                 // If there's currently something in the channel, return
                 // it.
                 Ok(state) => return Some(state),
@@ -34,6 +34,7 @@ impl Iterator for Crawler {
                     } else {
                         // The channel is currently empty, but we will
                         // more values later.
+                        thread::sleep_ms(100);
                         continue
                     }
                 }
@@ -90,6 +91,9 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
                 // Lock `visited` and see if we've already visited this URL.
                 let mut visited_val = visited.lock().unwrap();
                 if visited_val.contains(&current) {
+                    // Nothing left to do here, so decrement count.
+                    let mut active_threads_val = active_threads.lock().unwrap();
+                    *active_threads_val -= 1;
                     continue
                 } else {
                     visited_val.insert(current.to_owned());
