@@ -84,9 +84,9 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
                 };
                 let current = to_visit_val.pop().unwrap();
                 *active_threads_val += 1;
-                drop(to_visit_val);
                 assert!(*active_threads_val <= THREADS);
                 drop(active_threads_val);
+                drop(to_visit_val);
 
                 // Lock `visited` and see if we've already visited this URL.
                 let mut visited_val = visited.lock().unwrap();
