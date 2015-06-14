@@ -1,6 +1,6 @@
 [root]
 name = "linkdoc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "html5ever 0.0.0 (git+https://github.com/servo/html5ever)",
  "html5ever_dom_sink 0.0.0 (git+https://github.com/servo/html5ever)",
