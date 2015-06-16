@@ -49,36 +49,39 @@ fn crawl_worker_thread(domain: &str, to_visit: Arc<Mutex<Vec<String>>>,
                        active_count: Arc<Mutex<i32>>,
                        url_states: Sender<UrlState>) {
     loop {
-        // Lock `to_visit` vector, and try to get an URL to visit.
-        let mut to_visit_val = to_visit.lock().unwrap();
-        let mut active_count_val = active_count.lock().unwrap();
-        if to_visit_val.is_empty() {
-            // If there are requests still in flight, we might
-            // get more work in the future.
-            if *active_count_val > 0 {
-                continue
-            } else {
-                // There won't be any more URLs to visit, so terminate this thread.
-                break
-            }
-        };
-        let current = to_visit_val.pop().unwrap();
-        *active_count_val += 1;
-        assert!(*active_count_val <= THREADS);
-        drop(active_count_val);
-        drop(to_visit_val);
-
-        // Lock `visited` and see if we've already visited this URL.
-        let mut visited_val = visited.lock().unwrap();
-        if visited_val.contains(&current) {
-            // Nothing left to do here, so decrement count.
+        let current;
+        {
+            // Lock `to_visit` vector, and try to get an URL to visit.
+            let mut to_visit_val = to_visit.lock().unwrap();
             let mut active_count_val = active_count.lock().unwrap();
-            *active_count_val -= 1;
-            continue
-        } else {
-            visited_val.insert(current.to_owned());
+            if to_visit_val.is_empty() {
+                // If there are requests still in flight, we might
+                // get more work in the future.
+                if *active_count_val > 0 {
+                    continue
+                } else {
+                    // There won't be any more URLs to visit, so terminate this thread.
+                    break
+                }
+            };
+            current = to_visit_val.pop().unwrap();
+            *active_count_val += 1;
+            assert!(*active_count_val <= THREADS);
         }
-        drop(visited_val);
+
+        {
+            // Lock `visited` and see if we've already visited this URL.
+            let mut visited_val = visited.lock().unwrap();
+            if visited_val.contains(&current) {
+                // Nothing left to do here, so decrement count.
+                let mut active_count_val = active_count.lock().unwrap();
+                *active_count_val -= 1;
+                continue
+            }
+            else {
+                visited_val.insert(current.to_owned());
+            }
+        }
 
         // TODO: we are fetching the URL twice, which is silly.
         let state = url_status(&domain, &current);
@@ -96,11 +99,12 @@ fn crawl_worker_thread(domain: &str, to_visit: Arc<Mutex<Vec<String>>>,
             }
         }
 
-        // This thread is now done, so decrement the count.
-        let mut active_count_val = active_count.lock().unwrap();
-        *active_count_val -= 1;
-        assert!(*active_count_val >= 0);
-        drop(active_count_val);
+        {
+            // This thread is now done, so decrement the count.
+            let mut active_count_val = active_count.lock().unwrap();
+            *active_count_val -= 1;
+            assert!(*active_count_val >= 0);
+        }
 
         url_states.send(state).unwrap();
     }
