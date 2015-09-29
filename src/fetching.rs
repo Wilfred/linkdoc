@@ -25,20 +25,20 @@ pub enum UrlState {
 
 impl fmt::Display for UrlState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &UrlState::Accessible(ref url) => {
+        match *self {
+            UrlState::Accessible(ref url) => {
                 format!("✔ {}", url).fmt(f)
             }
-            &UrlState::BadStatus(ref url, ref status) => {
+            UrlState::BadStatus(ref url, ref status) => {
                 format!("✘ {} ({})", url, status).fmt(f)
             }
-            &UrlState::ConnectionFailed(ref url) => {
+            UrlState::ConnectionFailed(ref url) => {
                 format!("✘ {} (connection failed)", url).fmt(f)
             }
-            &UrlState::TimedOut(ref url) => {
+            UrlState::TimedOut(ref url) => {
                 format!("✘ {} (timed out)", url).fmt(f)
             }
-            &UrlState::Malformed(ref url) => {
+            UrlState::Malformed(ref url) => {
                 format!("✘ {} (malformed)", url).fmt(f)
             }
         }
@@ -58,7 +58,7 @@ fn build_url(domain: &str, path: &str) -> ParseResult<Url> {
 const TIMEOUT_MS: u32 = 10000;
 
 pub fn url_status(domain: &str, path: &str) -> UrlState {
-    return match build_url(domain, path) {
+    match build_url(domain, path) {
         Ok(url) => {
 
             let (tx, rx) = channel();

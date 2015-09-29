@@ -18,7 +18,7 @@ mod crawling;
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() > 1 {
-        let ref start_url_string = args[1];
+        let start_url_string = &args[1];
 
         // TODO: a proper error message here.
         let start_url = Url::parse(start_url_string).unwrap();
@@ -34,7 +34,7 @@ fn main() {
                 UrlState::Accessible(_) => {
                     success_count += 1;
                 },
-                status @ _ => {
+                status => {
                     fail_count += 1;
                     println!("{}", status);
                 }
