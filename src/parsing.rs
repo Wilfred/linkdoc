@@ -46,7 +46,7 @@ fn get_elements_by_name(handle: Handle, element_name: &str, out: &mut Vec<NodeEn
         }
     }
 
-    for child in node.children.iter() {
+    for child in &node.children {
         get_elements_by_name(child.clone(), element_name, out);
     }
 }
