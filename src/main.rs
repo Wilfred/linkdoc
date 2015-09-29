@@ -3,7 +3,6 @@
 
 extern crate url;
 extern crate html5ever;
-extern crate html5ever_dom_sink;
 
 use std::env;
 use std::io::stdout;
