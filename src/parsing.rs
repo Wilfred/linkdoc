@@ -17,9 +17,9 @@ pub fn parse_html(source_str: String) -> RcDom {
 }
 
 pub fn get_urls(handle: Handle) -> Vec<String> {
-    let mut urls = Vec::new();
+    let mut urls = vec![];
     
-    let mut anchor_tags = Vec::new();
+    let mut anchor_tags = vec![];
     get_elements_by_name(handle, "a", &mut anchor_tags);
 
     for node in anchor_tags {
