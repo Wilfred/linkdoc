@@ -29,7 +29,7 @@ fn main() {
         let mut success_count = 0;
         let mut fail_count = 0;
 
-        for url_state in crawling::crawl(&domain, &path_components.connect("/")) {
+        for url_state in crawling::crawl(&domain, &path_components.join("/")) {
             match url_state {
                 UrlState::Accessible(_) => {
                     success_count += 1;
