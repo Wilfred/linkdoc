@@ -1,6 +1,3 @@
-#![feature(core)]
-#![feature(plugin)]
-
 extern crate url;
 extern crate html5ever;
 

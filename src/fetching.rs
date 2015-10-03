@@ -1,11 +1,10 @@
-extern crate core;
 extern crate hyper;
 extern crate url;
 
 use std::io::Read;
 use std::thread;
 use std::sync::mpsc::channel;
-use self::core::fmt;
+use std::fmt;
 
 use self::hyper::Client;
 use self::hyper::error::Result;
