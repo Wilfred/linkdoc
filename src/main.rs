@@ -4,7 +4,7 @@ extern crate html5ever;
 use std::env;
 use std::io::stdout;
 use std::io::Write;
-use url::{Url};
+use url::Url;
 
 use fetching::UrlState;
 
@@ -30,14 +30,16 @@ fn main() {
             match url_state {
                 UrlState::Accessible(_) => {
                     success_count += 1;
-                },
+                }
                 status => {
                     fail_count += 1;
                     println!("{}", status);
                 }
             }
 
-            print!("Succeeded: {} Failed: {}\r", success_count, fail_count);
+            print!("Succeeded: {} Failed: {}\r",
+                   success_count,
+                   fail_count);
             stdout().flush().unwrap();
         }
 

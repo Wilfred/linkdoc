@@ -6,19 +6,19 @@ use self::tendril::{ByteTendril, ReadExt};
 
 use html5ever::tokenizer::Attribute;
 use html5ever::{parse, one_input};
-use html5ever::rcdom::{RcDom,Handle,Element,ElementEnum,NodeEnum};
+use html5ever::rcdom::{RcDom, Handle, Element, ElementEnum, NodeEnum};
 
 pub fn parse_html(source_str: String) -> RcDom {
     let mut source = ByteTendril::new();
     source_str.as_bytes().read_to_tendril(&mut source).unwrap();
     let source = source.try_reinterpret().unwrap();
-    
+
     parse(one_input(source), Default::default())
 }
 
 pub fn get_urls(handle: Handle) -> Vec<String> {
     let mut urls = vec![];
-    
+
     let mut anchor_tags = vec![];
     get_elements_by_name(handle, "a", &mut anchor_tags);
 
@@ -50,4 +50,3 @@ fn get_elements_by_name(handle: Handle, element_name: &str, out: &mut Vec<NodeEn
         get_elements_by_name(child.clone(), element_name, out);
     }
 }
-

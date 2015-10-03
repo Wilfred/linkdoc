@@ -19,7 +19,7 @@ pub enum UrlState {
     BadStatus(Url, StatusCode),
     ConnectionFailed(Url),
     TimedOut(Url),
-    Malformed(String)
+    Malformed(String),
 }
 
 impl fmt::Display for UrlState {
@@ -80,7 +80,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
                             UrlState::BadStatus(url, r.status)
                         }
                     }
-                    Err(_) => UrlState::ConnectionFailed(url)
+                    Err(_) => UrlState::ConnectionFailed(url),
                 });
             });
 
@@ -92,8 +92,8 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
             // Take whichever value arrives in the channel first.
             rx.recv().unwrap()
-        },
-        Err(_) => UrlState::Malformed(path.to_owned())
+        }
+        Err(_) => UrlState::Malformed(path.to_owned()),
     }
 
 }
@@ -113,7 +113,7 @@ pub fn fetch_url(url: &Url) -> String {
         // If we can't, it's binary data, so just return an empty string.
         // TODO: It would be cleaner if this function returned bytes.
         // This also assumes that HTML is never in any other encoding.
-        Err(_) => String::new()
+        Err(_) => String::new(),
     }
 }
 

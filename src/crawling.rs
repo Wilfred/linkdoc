@@ -23,7 +23,7 @@ impl Iterator for Crawler {
                 // If there's currently something in the channel, return
                 // it.
                 Ok(state) => return Some(state),
-                
+
                 Err(_) => {
                     let to_visit_val = self.to_visit.lock().unwrap();
                     let active_count_val = self.active_count.lock().unwrap();
@@ -44,7 +44,8 @@ impl Iterator for Crawler {
 
 const THREADS: i32 = 10;
 
-fn crawl_worker_thread(domain: &str, to_visit: Arc<Mutex<Vec<String>>>,
+fn crawl_worker_thread(domain: &str,
+                       to_visit: Arc<Mutex<Vec<String>>>,
                        visited: Arc<Mutex<HashSet<String>>>,
                        active_count: Arc<Mutex<i32>>,
                        url_states: Sender<UrlState>) {
@@ -77,8 +78,7 @@ fn crawl_worker_thread(domain: &str, to_visit: Arc<Mutex<Vec<String>>>,
                 let mut active_count_val = active_count.lock().unwrap();
                 *active_count_val -= 1;
                 continue
-            }
-            else {
+            } else {
                 visited_val.insert(current.to_owned());
             }
         }
@@ -131,10 +131,9 @@ pub fn crawl(domain: &str, start_url: &str) -> Crawler {
         let visited = visited.clone();
         let active_count = active_count.clone();
         let tx = tx.clone();
-        
+
         thread::spawn(move || {
-            crawl_worker_thread(&domain, to_visit, visited,
-                                active_count, tx);
+            crawl_worker_thread(&domain, to_visit, visited, active_count, tx);
         });
     }
 
