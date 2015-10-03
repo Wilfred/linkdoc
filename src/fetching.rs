@@ -66,7 +66,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
             // Try to do the request.
             thread::spawn(move || {
-                let mut client = Client::new();
+                let client = Client::new();
 
                 let url_string = url.serialize();
                 let response = client.get(&url_string).send();
@@ -99,8 +99,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 }
 
 pub fn fetch_url(url: &Url) -> String {
-    // Create a client.
-    let mut client = Client::new();
+    let client = Client::new();
 
     // Creating an outgoing request.
     let url_string = url.serialize();
