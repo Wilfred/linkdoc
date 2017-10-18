@@ -7,7 +7,6 @@ use std::sync::mpsc::channel;
 use std::fmt;
 
 use self::hyper::Client;
-use self::hyper::error::Result;
 use self::hyper::status::StatusCode;
 use self::url::{Url, UrlParser, ParseResult};
 
