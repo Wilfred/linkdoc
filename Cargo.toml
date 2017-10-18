@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["Wilfred Hughes <me@wilfred.me.uk>"]
 
 [dependencies]
-hyper = "*"
-html5ever = "*"
-tendril = "*"
-url = "*"
+hyper = "0.6.14"
+html5ever = "0.2.6"
+tendril = "0.1.6"
+url = "0.2.37"
