@@ -26,7 +26,7 @@ pub fn get_urls(handle: Handle) -> Vec<String> {
         if let Element(_, _, ref attrs) = node {
             for attr in attrs.iter() {
                 let Attribute { ref name, ref value } = *attr;
-                if name.local.as_slice() == "href" {
+                if name.local.as_ref() == "href" {
                     urls.push(value.to_string());
                 }
             }
@@ -41,7 +41,7 @@ fn get_elements_by_name(handle: Handle, element_name: &str, out: &mut Vec<NodeEn
     let node = handle.borrow();
 
     if let Element(ref name, _, ref attrs) = node.node {
-        if name.local.as_slice() == element_name {
+        if name.local.as_ref() == element_name {
             out.push(Element(name.clone(), ElementEnum::Normal, attrs.clone()));
         }
     }
