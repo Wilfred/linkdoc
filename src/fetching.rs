@@ -13,7 +13,7 @@ use self::url::{Url, UrlParser, ParseResult};
 
 use parsing;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum UrlState {
     Accessible(Url),
     BadStatus(Url, StatusCode),
@@ -25,21 +25,13 @@ pub enum UrlState {
 impl fmt::Display for UrlState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            UrlState::Accessible(ref url) => {
-                format!("✔ {}", url).fmt(f)
-            }
-            UrlState::BadStatus(ref url, ref status) => {
-                format!("✘ {} ({})", url, status).fmt(f)
-            }
+            UrlState::Accessible(ref url) => format!("✔ {}", url).fmt(f),
+            UrlState::BadStatus(ref url, ref status) => format!("✘ {} ({})", url, status).fmt(f),
             UrlState::ConnectionFailed(ref url) => {
                 format!("✘ {} (connection failed)", url).fmt(f)
             }
-            UrlState::TimedOut(ref url) => {
-                format!("✘ {} (timed out)", url).fmt(f)
-            }
-            UrlState::Malformed(ref url) => {
-                format!("✘ {} (malformed)", url).fmt(f)
-            }
+            UrlState::TimedOut(ref url) => format!("✘ {} (timed out)", url).fmt(f),
+            UrlState::Malformed(ref url) => format!("✘ {} (malformed)", url).fmt(f),
         }
     }
 }
@@ -103,7 +95,9 @@ pub fn fetch_url(url: &Url) -> String {
 
     // Creating an outgoing request.
     let url_string = url.serialize();
-    let mut res = client.get(&url_string).send().ok().expect("could not fetch URL");
+    let mut res = client.get(&url_string).send().ok().expect(
+        "could not fetch URL",
+    );
 
     // Read the Response.
     let mut body = String::new();

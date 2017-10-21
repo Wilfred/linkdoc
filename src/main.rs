@@ -20,7 +20,9 @@ fn main() {
         // TODO: a proper error message here.
         let start_url = Url::parse(start_url_string).unwrap();
 
-        let domain = start_url.domain().expect("I can't find a domain in your URL");
+        let domain = start_url.domain().expect(
+            "I can't find a domain in your URL",
+        );
         let path_components = start_url.path().expect("I can't find a path in your URL");
 
         let mut success_count = 0;
@@ -37,9 +39,7 @@ fn main() {
                 }
             }
 
-            print!("Succeeded: {} Failed: {}\r",
-                   success_count,
-                   fail_count);
+            print!("Succeeded: {} Failed: {}\r", success_count, fail_count);
             stdout().flush().unwrap();
         }
 
