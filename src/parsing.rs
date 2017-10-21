@@ -25,7 +25,10 @@ pub fn get_urls(handle: Handle) -> Vec<String> {
     for node in anchor_tags {
         if let Element(_, _, ref attrs) = node {
             for attr in attrs.iter() {
-                let Attribute { ref name, ref value } = *attr;
+                let Attribute {
+                    ref name,
+                    ref value,
+                } = *attr;
                 if name.local.as_ref() == "href" {
                     urls.push(value.to_string());
                 }
