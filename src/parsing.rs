@@ -6,7 +6,7 @@ use html5ever::parse_document;
 use html5ever::rcdom::{NodeData, RcDom, Handle};
 use html5ever::interface::Attribute;
 
-pub fn parse_html(source_str: String) -> RcDom {
+pub fn parse_html(source_str: &str) -> RcDom {
     parse_document(RcDom::default(), Default::default())
         .from_utf8()
         .read_from(&mut source_str.as_bytes())

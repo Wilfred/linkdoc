@@ -116,7 +116,7 @@ pub fn fetch_url(url: &Url) -> String {
 /// in malformed URLs.
 pub fn fetch_all_urls(url: &Url) -> Vec<String> {
     let html_src = fetch_url(url);
-    let dom = parsing::parse_html(html_src);
+    let dom = parsing::parse_html(&html_src);
 
     parsing::get_urls(dom.document)
 }
