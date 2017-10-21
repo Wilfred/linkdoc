@@ -3,6 +3,7 @@ extern crate url;
 
 use std::io::Read;
 use std::thread;
+use std::time::Duration;
 use std::sync::mpsc::channel;
 use std::fmt;
 
@@ -53,7 +54,7 @@ fn build_url(domain: &str, path: &str) -> ParseResult<Url> {
     url_parser.parse(path)
 }
 
-const TIMEOUT_MS: u32 = 10000;
+const TIMEOUT_SECS: u64 = 10;
 
 pub fn url_status(domain: &str, path: &str) -> UrlState {
     match build_url(domain, path) {
@@ -85,7 +86,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
             // Send a timeout down the channel after a delay.
             thread::spawn(move || {
-                thread::sleep_ms(TIMEOUT_MS);
+                thread::sleep(Duration::from_secs(TIMEOUT_SECS));
                 let _ = tx.send(UrlState::TimedOut(url2));
             });
 
