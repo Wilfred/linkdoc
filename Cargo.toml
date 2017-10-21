@@ -5,6 +5,5 @@ authors = ["Wilfred Hughes <me@wilfred.me.uk>"]
 
 [dependencies]
 hyper = "0.10.1"
-html5ever = "0.2.6"
-tendril = "0.1.6"
+html5ever = "0.21.0"
 url = "0.2.37"
