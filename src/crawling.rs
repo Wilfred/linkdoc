@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::sync::{Mutex, Arc};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
+use url::Url;
 
 use fetching::{UrlState, url_status, fetch_all_urls};
 
@@ -112,8 +113,8 @@ fn crawl_worker_thread(domain: &str,
 
 /// Starting at start_url, recursively iterate over all the URLs which match
 /// the domain, and return an iterator of their URL status.
-pub fn crawl(domain: &str, start_url: &str) -> Crawler {
-    let to_visit = Arc::new(Mutex::new(vec![start_url.to_owned()]));
+pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
+    let to_visit = Arc::new(Mutex::new(vec![start_url.serialize()]));
     let active_count = Arc::new(Mutex::new(0));
     let visited = Arc::new(Mutex::new(HashSet::new()));
 

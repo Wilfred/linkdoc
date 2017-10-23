@@ -23,12 +23,11 @@ fn main() {
         let domain = start_url.domain().expect(
             "I can't find a domain in your URL",
         );
-        let path_components = start_url.path().expect("I can't find a path in your URL");
 
         let mut success_count = 0;
         let mut fail_count = 0;
 
-        for url_state in crawling::crawl(&domain, &path_components.join("/")) {
+        for url_state in crawling::crawl(&domain, &start_url) {
             match url_state {
                 UrlState::Accessible(_) => {
                     success_count += 1;
