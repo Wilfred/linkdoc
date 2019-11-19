@@ -3,7 +3,7 @@ use std::fmt;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
-use url::{Url, ParseError};
+use url::{ParseError, Url};
 
 use crate::parsing;
 
