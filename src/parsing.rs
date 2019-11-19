@@ -5,18 +5,19 @@ use html5ever::interface::Attribute;
 use html5ever::parse_document;
 use html5ever::rcdom::{Handle, NodeData, RcDom};
 
-pub fn parse_html(source_str: &str) -> RcDom {
+fn parse_html(source_str: &str) -> RcDom {
     parse_document(RcDom::default(), Default::default())
         .from_utf8()
         .read_from(&mut source_str.as_bytes())
         .unwrap()
 }
 
-pub fn get_urls(handle: Handle) -> Vec<String> {
+pub fn get_urls(source_str: &str) -> Vec<String> {
+    let dom = parse_html(source_str);
     let mut urls = vec![];
 
     let mut anchor_tags = vec![];
-    get_elements_by_name(handle, "a", &mut anchor_tags);
+    get_elements_by_name(dom.document, "a", &mut anchor_tags);
 
     for node in anchor_tags {
         if let NodeData::Element { ref attrs, .. } = node {
