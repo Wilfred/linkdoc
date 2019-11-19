@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -7,8 +7,7 @@ use url::Url;
 use crate::fetching::{fetch_all_urls, url_status, UrlState};
 
 pub struct Crawler {
-    // TODO: use a proper deque.
-    to_visit: Arc<Mutex<Vec<String>>>,
+    to_visit: Arc<Mutex<VecDeque<String>>>,
 
     active_count: Arc<Mutex<i32>>,
 
@@ -47,7 +46,7 @@ const THREADS: i32 = 10;
 
 fn crawl_worker_thread(
     domain: &str,
-    to_visit: Arc<Mutex<Vec<String>>>,
+    to_visit: Arc<Mutex<VecDeque<String>>>,
     visited: Arc<Mutex<HashSet<String>>>,
     active_count: Arc<Mutex<i32>>,
     url_states: Sender<UrlState>,
@@ -68,7 +67,7 @@ fn crawl_worker_thread(
                     break;
                 }
             };
-            current = to_visit_val.pop().unwrap();
+            current = to_visit_val.pop_front().unwrap();
             *active_count_val += 1;
             assert!(*active_count_val <= THREADS);
         }
@@ -97,7 +96,7 @@ fn crawl_worker_thread(
 
                 let mut to_visit_val = to_visit.lock().unwrap();
                 for new_url in new_urls {
-                    to_visit_val.push(new_url);
+                    to_visit_val.push_back(new_url);
                 }
             }
         }
@@ -116,7 +115,10 @@ fn crawl_worker_thread(
 /// Starting at start_url, recursively iterate over all the URLs which match
 /// the domain, and return an iterator of their URL status.
 pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
-    let to_visit = Arc::new(Mutex::new(vec![start_url.as_str().to_owned()]));
+    let mut to_visit = VecDeque::new();
+    to_visit.push_back(start_url.as_str().to_owned());
+    let to_visit = Arc::new(Mutex::new(to_visit));
+
     let active_count = Arc::new(Mutex::new(0));
     let visited = Arc::new(Mutex::new(HashSet::new()));
 
