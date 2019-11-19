@@ -1,14 +1,11 @@
-extern crate hyper;
 extern crate url;
 
+use reqwest::StatusCode;
 use std::fmt;
-use std::io::Read;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
 
-use self::hyper::status::StatusCode;
-use self::hyper::Client;
 use self::url::{ParseResult, Url, UrlParser};
 
 use crate::parsing;
@@ -55,18 +52,16 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
             // Try to do the request.
             thread::spawn(move || {
-                let client = Client::new();
-
                 let url_string = url.serialize();
-                let response = client.get(&url_string).send();
+                let response = reqwest::get(&url_string);
 
                 let _ = request_tx.send(match response {
-                    Ok(r) => {
-                        if let StatusCode::Ok = r.status {
+                    Ok(response) => {
+                        if response.status().is_success() {
                             UrlState::Accessible(url)
                         } else {
                             // TODO: allow redirects unless they're circular
-                            UrlState::BadStatus(url, r.status)
+                            UrlState::BadStatus(url, response.status())
                         }
                     }
                     Err(_) => UrlState::ConnectionFailed(url),
@@ -87,23 +82,14 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 }
 
 pub fn fetch_url(url: &Url) -> String {
-    let client = Client::new();
-
     // Creating an outgoing request.
     let url_string = url.serialize();
-    let mut res = client
-        .get(&url_string)
-        .send()
-        .expect("could not fetch URL");
+    let mut res = reqwest::get(&url_string).expect("could not fetch URL");
 
-    // Read the Response.
-    let mut body = String::new();
-    match res.read_to_string(&mut body) {
-        // If we can read it as a UTF-8 string, just return that.
-        Ok(_) => body,
-        // If we can't, it's binary data, so just return an empty string.
-        // TODO: It would be cleaner if this function returned bytes.
-        // This also assumes that HTML is never in any other encoding.
+    // Read the body.
+    match res.text() {
+        Ok(body) => body,
+        // TODO: handle malformed data more gracefully.
         Err(_) => String::new(),
     }
 }
