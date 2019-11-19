@@ -94,7 +94,6 @@ pub fn fetch_url(url: &Url) -> String {
     let mut res = client
         .get(&url_string)
         .send()
-        .ok()
         .expect("could not fetch URL");
 
     // Read the Response.
