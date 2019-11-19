@@ -1,15 +1,15 @@
 extern crate hyper;
 extern crate url;
 
+use std::fmt;
 use std::io::Read;
+use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
-use std::sync::mpsc::channel;
-use std::fmt;
 
-use self::hyper::Client;
 use self::hyper::status::StatusCode;
-use self::url::{Url, UrlParser, ParseResult};
+use self::hyper::Client;
+use self::url::{ParseResult, Url, UrlParser};
 
 use crate::parsing;
 
@@ -27,9 +27,7 @@ impl fmt::Display for UrlState {
         match *self {
             UrlState::Accessible(ref url) => format!("✔ {}", url).fmt(f),
             UrlState::BadStatus(ref url, ref status) => format!("✘ {} ({})", url, status).fmt(f),
-            UrlState::ConnectionFailed(ref url) => {
-                format!("✘ {} (connection failed)", url).fmt(f)
-            }
+            UrlState::ConnectionFailed(ref url) => format!("✘ {} (connection failed)", url).fmt(f),
             UrlState::TimedOut(ref url) => format!("✘ {} (timed out)", url).fmt(f),
             UrlState::Malformed(ref url) => format!("✘ {} (malformed)", url).fmt(f),
         }
@@ -51,7 +49,6 @@ const TIMEOUT_SECS: u64 = 10;
 pub fn url_status(domain: &str, path: &str) -> UrlState {
     match build_url(domain, path) {
         Ok(url) => {
-
             let (tx, rx) = channel();
             let request_tx = tx.clone();
             let url2 = url.clone();
@@ -87,7 +84,6 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
         }
         Err(_) => UrlState::Malformed(path.to_owned()),
     }
-
 }
 
 pub fn fetch_url(url: &Url) -> String {
@@ -95,9 +91,11 @@ pub fn fetch_url(url: &Url) -> String {
 
     // Creating an outgoing request.
     let url_string = url.serialize();
-    let mut res = client.get(&url_string).send().ok().expect(
-        "could not fetch URL",
-    );
+    let mut res = client
+        .get(&url_string)
+        .send()
+        .ok()
+        .expect("could not fetch URL");
 
     // Read the Response.
     let mut body = String::new();

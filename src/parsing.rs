@@ -1,10 +1,9 @@
-
-use std::string::String;
 use html5ever::tendril::TendrilSink;
+use std::string::String;
 
-use html5ever::parse_document;
-use html5ever::rcdom::{NodeData, RcDom, Handle};
 use html5ever::interface::Attribute;
+use html5ever::parse_document;
+use html5ever::rcdom::{Handle, NodeData, RcDom};
 
 pub fn parse_html(source_str: &str) -> RcDom {
     parse_document(RcDom::default(), Default::default())

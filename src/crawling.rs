@@ -1,10 +1,10 @@
 use std::collections::HashSet;
-use std::sync::{Mutex, Arc};
 use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use url::Url;
 
-use crate::fetching::{UrlState, url_status, fetch_all_urls};
+use crate::fetching::{fetch_all_urls, url_status, UrlState};
 
 pub struct Crawler {
     // TODO: use a proper deque.
@@ -31,11 +31,11 @@ impl Iterator for Crawler {
 
                     if to_visit_val.is_empty() && *active_count_val == 0 {
                         // We're done, no values left.
-                        return None
+                        return None;
                     } else {
                         // The channel is currently empty, but we will
                         // more values later.
-                        continue
+                        continue;
                     }
                 }
             }
@@ -45,11 +45,13 @@ impl Iterator for Crawler {
 
 const THREADS: i32 = 10;
 
-fn crawl_worker_thread(domain: &str,
-                       to_visit: Arc<Mutex<Vec<String>>>,
-                       visited: Arc<Mutex<HashSet<String>>>,
-                       active_count: Arc<Mutex<i32>>,
-                       url_states: Sender<UrlState>) {
+fn crawl_worker_thread(
+    domain: &str,
+    to_visit: Arc<Mutex<Vec<String>>>,
+    visited: Arc<Mutex<HashSet<String>>>,
+    active_count: Arc<Mutex<i32>>,
+    url_states: Sender<UrlState>,
+) {
     loop {
         let current;
         {
@@ -60,10 +62,10 @@ fn crawl_worker_thread(domain: &str,
                 // If there are requests still in flight, we might
                 // get more work in the future.
                 if *active_count_val > 0 {
-                    continue
+                    continue;
                 } else {
                     // There won't be any more URLs to visit, so terminate this thread.
-                    break
+                    break;
                 }
             };
             current = to_visit_val.pop().unwrap();
@@ -78,7 +80,7 @@ fn crawl_worker_thread(domain: &str,
                 // Nothing left to do here, so decrement count.
                 let mut active_count_val = active_count.lock().unwrap();
                 *active_count_val -= 1;
-                continue
+                continue;
             } else {
                 visited_val.insert(current.to_owned());
             }
