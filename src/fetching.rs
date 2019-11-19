@@ -4,6 +4,7 @@ use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
 use url::{ParseError, Url};
+use colored::*;
 
 use crate::parsing;
 
@@ -18,12 +19,14 @@ pub enum UrlState {
 
 impl fmt::Display for UrlState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let tick = "✔".green();
+        let cross = "✘".red();
         match *self {
-            UrlState::Accessible(ref url) => format!("✔ {}", url).fmt(f),
-            UrlState::BadStatus(ref url, ref status) => format!("✘ {} ({})", url, status).fmt(f),
-            UrlState::ConnectionFailed(ref url) => format!("✘ {} (connection failed)", url).fmt(f),
-            UrlState::TimedOut(ref url) => format!("✘ {} (timed out)", url).fmt(f),
-            UrlState::Malformed(ref url) => format!("✘ {} (malformed)", url).fmt(f),
+            UrlState::Accessible(ref url) => format!("{} {}", tick, url).fmt(f),
+            UrlState::BadStatus(ref url, ref status) => format!("{} {} ({})", cross, url, status).fmt(f),
+            UrlState::ConnectionFailed(ref url) => format!("{} {} (connection failed)", cross, url).fmt(f),
+            UrlState::TimedOut(ref url) => format!("{} {} (timed out)", cross, url).fmt(f),
+            UrlState::Malformed(ref url) => format!("{} {} (malformed)", cross, url).fmt(f),
         }
     }
 }

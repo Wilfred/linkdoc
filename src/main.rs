@@ -1,3 +1,4 @@
+use colored::*;
 use std::env;
 use std::io::stdout;
 use std::io::Write;
@@ -35,7 +36,13 @@ fn main() {
                 }
             }
 
-            print!("Succeeded: {} Failed: {}\r", success_count, fail_count);
+            print!(
+                "{}: {} {}: {}\r",
+                "Succeeded".green(),
+                success_count,
+                "Failed".red(),
+                fail_count
+            );
             stdout().flush().unwrap();
         }
     } else {
