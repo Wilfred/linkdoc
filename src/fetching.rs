@@ -11,7 +11,7 @@ use self::hyper::Client;
 use self::hyper::status::StatusCode;
 use self::url::{Url, UrlParser, ParseResult};
 
-use parsing;
+use crate::parsing;
 
 #[derive(Debug, Clone)]
 pub enum UrlState {

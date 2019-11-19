@@ -6,7 +6,7 @@ use std::io::stdout;
 use std::io::Write;
 use url::Url;
 
-use fetching::UrlState;
+use crate::fetching::UrlState;
 
 mod fetching;
 mod parsing;

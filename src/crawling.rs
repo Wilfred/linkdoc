@@ -4,7 +4,7 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use url::Url;
 
-use fetching::{UrlState, url_status, fetch_all_urls};
+use crate::fetching::{UrlState, url_status, fetch_all_urls};
 
 pub struct Crawler {
     // TODO: use a proper deque.
