@@ -1,12 +1,9 @@
-extern crate url;
-
 use reqwest::StatusCode;
 use std::fmt;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
-
-use self::url::{ParseResult, Url, UrlParser};
+use url::{Url, ParseError};
 
 use crate::parsing;
 
@@ -31,14 +28,10 @@ impl fmt::Display for UrlState {
     }
 }
 
-fn build_url(domain: &str, path: &str) -> ParseResult<Url> {
+fn build_url(domain: &str, path: &str) -> Result<Url, ParseError> {
     let base_url_string = format!("http://{}", domain);
-    let base_url = Url::parse(&base_url_string).unwrap();
-
-    let mut raw_url_parser = UrlParser::new();
-    let url_parser = raw_url_parser.base_url(&base_url);
-
-    url_parser.parse(path)
+    let base_url = Url::parse(&base_url_string)?;
+    base_url.join(path)
 }
 
 const TIMEOUT_SECS: u64 = 10;
@@ -52,8 +45,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
             // Try to do the request.
             thread::spawn(move || {
-                let url_string = url.serialize();
-                let response = reqwest::get(&url_string);
+                let response = reqwest::get(url.as_str());
 
                 let _ = request_tx.send(match response {
                     Ok(response) => {
@@ -83,8 +75,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
 pub fn fetch_url(url: &Url) -> String {
     // Creating an outgoing request.
-    let url_string = url.serialize();
-    let mut res = reqwest::get(&url_string).expect("could not fetch URL");
+    let mut res = reqwest::get(url.as_str()).expect("could not fetch URL");
 
     // Read the body.
     match res.text() {

@@ -1,5 +1,4 @@
 extern crate html5ever;
-extern crate url;
 
 use std::env;
 use std::io::stdout;
