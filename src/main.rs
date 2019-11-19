@@ -1,5 +1,3 @@
-extern crate html5ever;
-
 use std::env;
 use std::io::stdout;
 use std::io::Write;

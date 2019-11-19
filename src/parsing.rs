@@ -1,63 +1,16 @@
-use html5ever::tendril::TendrilSink;
-use std::string::String;
-
-use html5ever::interface::Attribute;
-use html5ever::parse_document;
-use html5ever::rcdom::{Handle, NodeData, RcDom};
-
-fn parse_html(source_str: &str) -> RcDom {
-    parse_document(RcDom::default(), Default::default())
-        .from_utf8()
-        .read_from(&mut source_str.as_bytes())
-        .unwrap()
-}
+use scraper::{Html, Selector};
 
 pub fn get_urls(source_str: &str) -> Vec<String> {
-    let dom = parse_html(source_str);
+    let document = Html::parse_document(source_str);
+
+    let selector = Selector::parse("a").unwrap();
+
     let mut urls = vec![];
-
-    let mut anchor_tags = vec![];
-    get_elements_by_name(dom.document, "a", &mut anchor_tags);
-
-    for node in anchor_tags {
-        if let NodeData::Element { ref attrs, .. } = node {
-            for attr in attrs.borrow().iter() {
-                let Attribute {
-                    ref name,
-                    ref value,
-                } = *attr;
-                if &*(name.local) == "href" {
-                    urls.push(value.to_string());
-                }
-            }
+    for node in document.select(&selector) {
+        if let Some(url) = node.value().attr("href") {
+            urls.push(url.to_owned());
         }
     }
 
     urls
-}
-
-// Crude tree walker rather than using a full-blown CSS selector library.
-fn get_elements_by_name(handle: Handle, element_name: &str, out: &mut Vec<NodeData>) {
-    let node = handle;
-
-    if let NodeData::Element {
-        ref name,
-        ref attrs,
-        ref template_contents,
-        ..
-    } = node.data
-    {
-        if &*(name.local) == element_name {
-            out.push(NodeData::Element {
-                name: name.clone(),
-                attrs: attrs.clone(),
-                template_contents: template_contents.clone(),
-                mathml_annotation_xml_integration_point: false,
-            });
-        }
-    }
-
-    for child in node.children.borrow().iter() {
-        get_elements_by_name(child.clone(), element_name, out);
-    }
 }
