@@ -1,10 +1,10 @@
+use colored::*;
+use crossbeam_channel::unbounded;
 use reqwest::StatusCode;
 use std::fmt;
-use std::sync::mpsc::channel;
 use std::thread;
 use std::time::Duration;
 use url::{ParseError, Url};
-use colored::*;
 
 use crate::parsing;
 
@@ -46,15 +46,15 @@ const TIMEOUT_SECS: u64 = 10;
 pub fn url_status(domain: &str, path: &str) -> UrlState {
     match build_url(domain, path) {
         Ok(url) => {
-            let (tx, rx) = channel();
-            let request_tx = tx.clone();
+            let (s, r) = unbounded();
+            let request_s = s.clone();
             let url2 = url.clone();
 
             // Try to do the request.
             thread::spawn(move || {
                 let response = reqwest::get(url.as_str());
 
-                let _ = request_tx.send(match response {
+                let _ = request_s.send(match response {
                     Ok(response) => {
                         if response.status().is_success() {
                             UrlState::Accessible(url)
@@ -70,11 +70,11 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
             // Send a timeout down the channel after a delay.
             thread::spawn(move || {
                 thread::sleep(Duration::from_secs(TIMEOUT_SECS));
-                let _ = tx.send(UrlState::TimedOut(url2));
+                let _ = s.send(UrlState::TimedOut(url2));
             });
 
             // Take whichever value arrives in the channel first.
-            rx.recv().unwrap()
+            r.recv().unwrap()
         }
         Err(_) => UrlState::Malformed(path.to_owned()),
     }
