@@ -23,8 +23,12 @@ impl fmt::Display for UrlState {
         let cross = "✘".red();
         match *self {
             UrlState::Accessible(ref url) => format!("{} {}", tick, url).fmt(f),
-            UrlState::BadStatus(ref url, ref status) => format!("{} {} ({})", cross, url, status).fmt(f),
-            UrlState::ConnectionFailed(ref url) => format!("{} {} (connection failed)", cross, url).fmt(f),
+            UrlState::BadStatus(ref url, ref status) => {
+                format!("{} {} ({})", cross, url, status).fmt(f)
+            }
+            UrlState::ConnectionFailed(ref url) => {
+                format!("{} {} (connection failed)", cross, url).fmt(f)
+            }
             UrlState::TimedOut(ref url) => format!("{} {} (timed out)", cross, url).fmt(f),
             UrlState::Malformed(ref url) => format!("{} {} (malformed)", cross, url).fmt(f),
         }
