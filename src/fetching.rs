@@ -1,5 +1,5 @@
 use colored::*;
-use crossbeam_channel::unbounded;
+use crossbeam_channel::{select, unbounded};
 use reqwest::StatusCode;
 use std::fmt;
 use std::thread;
@@ -67,14 +67,11 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
                 });
             });
 
-            // Send a timeout down the channel after a delay.
-            thread::spawn(move || {
-                thread::sleep(Duration::from_secs(TIMEOUT_SECS));
-                let _ = s.send(UrlState::TimedOut(url2));
-            });
-
-            // Take whichever value arrives in the channel first.
-            r.recv().unwrap()
+            // Return the request result, or timeout.
+            select! {
+                recv(r) -> msg => msg.unwrap(),
+                default(Duration::from_secs(TIMEOUT_SECS)) => UrlState::TimedOut(url2)
+            }
         }
         Err(_) => UrlState::Malformed(path.to_owned()),
     }
