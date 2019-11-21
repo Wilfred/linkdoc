@@ -1,4 +1,5 @@
 use std::collections::{HashSet, VecDeque};
+use crossbeam_utils::Backoff;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -18,6 +19,7 @@ impl Iterator for Crawler {
     type Item = UrlState;
 
     fn next(&mut self) -> Option<UrlState> {
+        let backoff = Backoff::new();
         loop {
             match self.url_states.try_recv() {
                 // If there's currently something in the channel, return
@@ -34,6 +36,7 @@ impl Iterator for Crawler {
                     } else {
                         // The channel is currently empty, but we will
                         // more values later.
+                        backoff.snooze();
                         continue;
                     }
                 }
