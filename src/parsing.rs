@@ -21,5 +21,13 @@ pub fn get_urls(source_str: &str) -> Vec<String> {
         }
     }
 
+    // Also check that CSS links are accessible.
+    let selector = Selector::parse("link").unwrap();
+    for node in document.select(&selector) {
+        if let Some(url) = node.value().attr("href") {
+            urls.push(url.to_owned());
+        }
+    }
+
     urls
 }
