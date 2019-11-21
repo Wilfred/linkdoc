@@ -1,6 +1,6 @@
-use std::collections::{HashSet, VecDeque};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use crossbeam_utils::Backoff;
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::collections::{HashSet, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use url::Url;
@@ -125,12 +125,12 @@ pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
     let active_count = Arc::new(Mutex::new(0));
     let visited = Arc::new(Mutex::new(HashSet::new()));
 
-    let (tx, rx) = channel();
+    let (s, r) = unbounded();
 
     let crawler = Crawler {
         to_visit: to_visit.clone(),
         active_count: active_count.clone(),
-        url_states: rx,
+        url_states: r,
     };
 
     for _ in 0..THREADS {
@@ -138,10 +138,10 @@ pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
         let to_visit = to_visit.clone();
         let visited = visited.clone();
         let active_count = active_count.clone();
-        let tx = tx.clone();
+        let s = s.clone();
 
         thread::spawn(move || {
-            crawl_worker_thread(&domain, to_visit, visited, active_count, tx);
+            crawl_worker_thread(&domain, to_visit, visited, active_count, s);
         });
     }
 
