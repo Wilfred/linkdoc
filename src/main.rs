@@ -1,5 +1,5 @@
+use clap::{App, Arg};
 use colored::*;
-use std::env;
 use std::io::stdout;
 use std::io::Write;
 use url::Url;
@@ -11,42 +11,43 @@ mod fetching;
 mod parsing;
 
 fn main() {
-    let args: Vec<_> = env::args().collect();
-    if args.len() > 1 {
-        let start_url_string = &args[1];
+    let matches = App::new("LinkDoctor")
+        .version("0.2")
+        .about("Walks all the web pages in a domain to find dead links.")
+        .author("Wilfred Hughes")
+        .arg(Arg::with_name("START URL").required(true))
+        .get_matches();
 
-        // TODO: a proper error message here.
-        let start_url = Url::parse(start_url_string).unwrap();
+    let start_url_string = matches.value_of("START URL").unwrap();
 
-        let domain = start_url
-            .domain()
-            .expect("I can't find a domain in your URL");
+    // TODO: a proper error message here.
+    let start_url = Url::parse(start_url_string).unwrap();
 
-        let mut success_count = 0;
-        let mut fail_count = 0;
+    let domain = start_url
+        .domain()
+        .expect("I can't find a domain in your URL");
 
-        for url_state in crawling::crawl(&domain, &start_url) {
-            match url_state {
-                UrlState::Accessible(_) => {
-                    success_count += 1;
-                }
-                status => {
-                    fail_count += 1;
-                    println!("{}", status);
-                }
+    let mut success_count = 0;
+    let mut fail_count = 0;
+
+    for url_state in crawling::crawl(&domain, &start_url) {
+        match url_state {
+            UrlState::Accessible(_) => {
+                success_count += 1;
             }
-
-            print!(
-                "{}: {} {}: {}\r",
-                "Succeeded".green(),
-                success_count,
-                "Failed".red(),
-                fail_count
-            );
-            stdout().flush().unwrap();
+            status => {
+                fail_count += 1;
+                println!("{}", status);
+            }
         }
-    } else {
-        // TODO: exit non-zero and print proper usage.
-        println!("Please provide an URL.")
+
+        print!(
+            "{}: {} {}: {}\r",
+            "Succeeded".green(),
+            success_count,
+            "Failed".red(),
+            fail_count
+        );
+        stdout().flush().unwrap();
     }
 }
