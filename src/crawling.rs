@@ -40,7 +40,7 @@ impl Iterator for Crawler {
     }
 }
 
-const THREADS: i32 = 10;
+const CRAWL_THREADS: i32 = 10;
 
 /// Read URLs from the `url_r` channel, and write url states to the
 /// `url_states` channel. Write new URLs discovered back to the
@@ -59,7 +59,7 @@ fn crawl_worker_thread(
                 {
                     let mut active_count_val = active_count.lock().unwrap();
                     *active_count_val += 1;
-                    assert!(*active_count_val <= THREADS);
+                    assert!(*active_count_val <= CRAWL_THREADS);
                 }
 
                 {
@@ -127,7 +127,7 @@ pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
         url_states: url_state_r,
     };
 
-    for _ in 0..THREADS {
+    for _ in 0..CRAWL_THREADS {
         let domain = domain.to_owned();
         let visited = visited.clone();
         let active_count = active_count.clone();
