@@ -62,27 +62,20 @@ fn crawl_worker_thread(
                     assert!(*active_count_val <= CRAWL_THREADS);
                 }
 
-                {
-                    // Lock `visited` and see if we've already visited this URL.
-                    let mut visited_val = visited.lock().unwrap();
-                    if visited_val.contains(&current) {
-                        // Nothing left to do here, so decrement count.
-                        let mut active_count_val = active_count.lock().unwrap();
-                        *active_count_val -= 1;
-                        continue;
-                    } else {
-                        visited_val.insert(current.to_owned());
-                    }
-                }
-
                 // TODO: we are fetching the URL twice, which is silly.
                 let state = url_status(&domain, &current);
 
                 // Fetch accessible URLs on the same domain and crawl them too.
                 if let UrlState::Accessible(ref url) = state.clone() {
                     if url.domain() == Some(&domain) {
+                        // Lock `visited` and see if we've already visited these discovered URLs.
+                        let mut visited = visited.lock().unwrap();
+
                         for new_url in fetch_all_urls(&url) {
-                            url_s.send(new_url).unwrap();
+                            if !visited.contains(&new_url) {
+                                visited.insert(new_url.clone());
+                                url_s.send(new_url).unwrap();
+                            }
                         }
                     }
                 }
@@ -116,7 +109,10 @@ fn crawl_worker_thread(
 /// the domain, and return an iterator of their URL status.
 pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
     let active_count = Arc::new(Mutex::new(0));
-    let visited = Arc::new(Mutex::new(HashSet::new()));
+
+    let mut visited = HashSet::with_capacity(1);
+    visited.insert(start_url.as_str().into());
+    let visited = Arc::new(Mutex::new(visited));
 
     let (url_state_s, url_state_r) = unbounded();
     let (visit_s, visit_r) = unbounded();
