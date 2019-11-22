@@ -57,9 +57,9 @@ fn crawl_worker_thread(
         match url_r.try_recv() {
             Ok(current) => {
                 {
-                    let mut active_count_val = active_count.lock().unwrap();
-                    *active_count_val += 1;
-                    assert!(*active_count_val <= CRAWL_THREADS);
+                    let mut active_count = active_count.lock().unwrap();
+                    *active_count += 1;
+                    assert!(*active_count <= CRAWL_THREADS);
                 }
 
                 // TODO: we are fetching the URL twice, which is silly.
@@ -82,19 +82,19 @@ fn crawl_worker_thread(
 
                 {
                     // This thread is now done, so decrement the count.
-                    let mut active_count_val = active_count.lock().unwrap();
-                    *active_count_val -= 1;
-                    assert!(*active_count_val >= 0);
+                    let mut active_count = active_count.lock().unwrap();
+                    *active_count -= 1;
+                    assert!(*active_count >= 0);
                 }
 
                 url_states.send(state).unwrap();
             }
             Err(_) => {
-                let active_count_val = active_count.lock().unwrap();
+                let active_count = active_count.lock().unwrap();
                 // Nothing in the channel for us to do.
                 // If there are requests still in flight, we might
                 // get more work in the future.
-                if *active_count_val > 0 {
+                if *active_count > 0 {
                     // snooze
                 } else {
                     // There won't be any more URLs to visit, so terminate this thread.
