@@ -24,16 +24,16 @@ impl Iterator for Crawler {
                 Ok(state) => return Some(state),
 
                 Err(_) => {
-                    let active_count_val = self.active_count.lock().unwrap();
-                    if *active_count_val == 0 {
-                        // We're done, no values left.
-                        return None;
-                    } else {
-                        // The channel is currently empty, but we will
-                        // more values later.
-                        backoff.snooze();
-                        continue;
+                    {
+                        let active_count = self.active_count.lock().unwrap();
+                        if *active_count == 0 {
+                            // We're done, no values left.
+                            return None;
+                        }
                     }
+                    // The channel is currently empty, but we will
+                    // have more values later.
+                    backoff.snooze();
                 }
             }
         }
