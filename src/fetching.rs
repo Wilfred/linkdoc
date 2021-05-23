@@ -47,14 +47,13 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
     match build_url(domain, path) {
         Ok(url) => {
             let (s, r) = unbounded();
-            let request_s = s.clone();
             let url2 = url.clone();
 
             // Try to do the request.
             thread::spawn(move || {
                 let response = reqwest::get(url.as_str());
 
-                let _ = request_s.send(match response {
+                let _ = s.send(match response {
                     Ok(response) => {
                         if response.status().is_success() {
                             UrlState::Accessible(url)
