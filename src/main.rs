@@ -32,7 +32,7 @@ fn main() {
 
     for url_state in crawling::crawl(&domain, &start_url) {
         match url_state {
-            UrlState::Accessible(_) => {
+            UrlState::Accessible(_, _) => {
                 success_count += 1;
             }
             status => {

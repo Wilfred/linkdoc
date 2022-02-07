@@ -10,11 +10,11 @@ use crate::parsing;
 
 #[derive(Debug, Clone)]
 pub enum UrlState {
-    Accessible(Url),
-    BadStatus(Url, StatusCode),
-    ConnectionFailed(Url),
-    TimedOut(Url),
-    Malformed(String),
+    Accessible(String, Url),
+    BadStatus(String, Url, StatusCode),
+    ConnectionFailed(String, Url),
+    TimedOut(String, Url),
+    Malformed(String, String),
 }
 
 impl fmt::Display for UrlState {
@@ -22,15 +22,21 @@ impl fmt::Display for UrlState {
         let tick = "✔".green();
         let cross = "✘".red();
         match *self {
-            UrlState::Accessible(ref url) => format!("{} {}", tick, url).fmt(f),
-            UrlState::BadStatus(ref url, ref status) => {
-                format!("{} {} ({})", cross, url, status).fmt(f)
+            UrlState::Accessible(ref old_url, ref url) => {
+                format!("{} {} {}", tick, old_url, url).fmt(f)
             }
-            UrlState::ConnectionFailed(ref url) => {
-                format!("{} {} (connection failed)", cross, url).fmt(f)
+            UrlState::BadStatus(ref old_url, ref url, ref status) => {
+                format!("{} {} {} ({})", cross, old_url, url, status).fmt(f)
             }
-            UrlState::TimedOut(ref url) => format!("{} {} (timed out)", cross, url).fmt(f),
-            UrlState::Malformed(ref url) => format!("{} {} (malformed)", cross, url).fmt(f),
+            UrlState::ConnectionFailed(ref old_url, ref url) => {
+                format!("{} {} {} (connection failed)", cross, old_url, url).fmt(f)
+            }
+            UrlState::TimedOut(ref old_url, ref url) => {
+                format!("{} {} {} (timed out)", cross, old_url, url).fmt(f)
+            }
+            UrlState::Malformed(ref old_url, ref url) => {
+                format!("{} {} {} (malformed)", cross, old_url, url).fmt(f)
+            }
         }
     }
 }
@@ -43,11 +49,12 @@ fn build_url(domain: &str, path: &str) -> Result<Url, ParseError> {
 
 const TIMEOUT_SECS: u64 = 10;
 
-pub fn url_status(domain: &str, path: &str) -> UrlState {
+pub fn url_status(domain: &str, old_path: &str, path: &str) -> UrlState {
     match build_url(domain, path) {
         Ok(url) => {
             let (s, r) = unbounded();
             let url2 = url.clone();
+            let old_path_static = old_path.to_owned();
 
             // Try to do the request.
             thread::spawn(move || {
@@ -56,23 +63,23 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
                 let _ = s.send(match response {
                     Ok(response) => {
                         if response.status().is_success() {
-                            UrlState::Accessible(url)
+                            UrlState::Accessible(old_path_static, url)
                         } else {
                             // TODO: allow redirects unless they're circular
-                            UrlState::BadStatus(url, response.status())
+                            UrlState::BadStatus(old_path_static, url, response.status())
                         }
                     }
-                    Err(_) => UrlState::ConnectionFailed(url),
+                    Err(_) => UrlState::ConnectionFailed(old_path_static, url),
                 });
             });
 
             // Return the request result, or timeout.
             select! {
                 recv(r) -> msg => msg.unwrap(),
-                default(Duration::from_secs(TIMEOUT_SECS)) => UrlState::TimedOut(url2)
+                default(Duration::from_secs(TIMEOUT_SECS)) => UrlState::TimedOut(old_path.to_owned(), url2)
             }
         }
-        Err(_) => UrlState::Malformed(path.to_owned()),
+        Err(_) => UrlState::Malformed(old_path.to_owned(), path.to_owned()),
     }
 }
 
