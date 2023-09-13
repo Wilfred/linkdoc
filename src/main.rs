@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{App, Arg, crate_authors, crate_version, crate_description};
 use colored::*;
 use std::io::stdout;
 use std::io::Write;
@@ -12,9 +12,9 @@ mod parsing;
 
 fn main() {
     let matches = App::new("LinkDoctor")
-        .version("0.2")
-        .about("Walks all the web pages in a domain to find dead links.")
-        .author("Wilfred Hughes")
+        .version(crate_version!())
+        .about(crate_description!())
+        .author(crate_authors!())
         .arg(Arg::with_name("START URL").required(true))
         .get_matches();
 
