@@ -63,15 +63,15 @@ fn crawl_worker_thread(
                 }
 
                 // TODO: we are fetching the URL twice, which is silly.
-                let state = url_status(&domain, &current);
+                let state = url_status(domain, &current);
 
                 // Fetch accessible URLs on the same domain and crawl them too.
                 if let UrlState::Accessible(ref url) = state.clone() {
-                    if url.domain() == Some(&domain) {
+                    if url.domain() == Some(domain) {
                         // Lock `visited` and see if we've already visited these discovered URLs.
                         let mut visited = visited.lock().unwrap();
 
-                        for new_url in fetch_all_urls(&url) {
+                        for new_url in fetch_all_urls(url) {
                             if !visited.contains(&new_url) {
                                 visited.insert(new_url.clone());
                                 url_s.send(new_url).unwrap();
