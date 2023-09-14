@@ -115,6 +115,8 @@ pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
     let visited = Arc::new(Mutex::new(visited));
 
     let (url_state_s, url_state_r) = unbounded();
+
+    // TODO: visit_s should be a Sender<Url>.
     let (visit_s, visit_r) = unbounded();
     visit_s.send(start_url.as_str().into()).unwrap();
 
