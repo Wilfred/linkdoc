@@ -9,28 +9,25 @@ use url::{ParseError, Url};
 use crate::parsing;
 
 #[derive(Debug, Clone)]
-pub enum UrlState {
-    Accessible(Url),
+pub enum UrlError {
     BadStatus(Url, StatusCode),
     ConnectionFailed(Url),
     TimedOut(Url),
     Malformed(String),
 }
 
-impl fmt::Display for UrlState {
+impl fmt::Display for UrlError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let tick = "✔".green();
         let cross = "✘".red();
         match *self {
-            UrlState::Accessible(ref url) => format!("{} {}", tick, url).fmt(f),
-            UrlState::BadStatus(ref url, ref status) => {
+            UrlError::BadStatus(ref url, ref status) => {
                 format!("{} {} ({})", cross, url, status).fmt(f)
             }
-            UrlState::ConnectionFailed(ref url) => {
+            UrlError::ConnectionFailed(ref url) => {
                 format!("{} {} (connection failed)", cross, url).fmt(f)
             }
-            UrlState::TimedOut(ref url) => format!("{} {} (timed out)", cross, url).fmt(f),
-            UrlState::Malformed(ref url) => format!("{} {} (malformed)", cross, url).fmt(f),
+            UrlError::TimedOut(ref url) => format!("{} {} (timed out)", cross, url).fmt(f),
+            UrlError::Malformed(ref url) => format!("{} {} (malformed)", cross, url).fmt(f),
         }
     }
 }
@@ -43,7 +40,7 @@ fn build_url(domain: &str, path: &str) -> Result<Url, ParseError> {
 
 const TIMEOUT_SECS: u64 = 10;
 
-pub fn url_status(domain: &str, path: &str) -> UrlState {
+pub fn url_status(domain: &str, path: &str) -> Result<Url, UrlError> {
     match build_url(domain, path) {
         Ok(url) => {
             let (s, r) = unbounded();
@@ -56,23 +53,23 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
                 let _ = s.send(match response {
                     Ok(response) => {
                         if response.status().is_success() {
-                            UrlState::Accessible(url)
+                            Ok(url)
                         } else {
                             // TODO: allow redirects unless they're circular
-                            UrlState::BadStatus(url, response.status())
+                            Err(UrlError::BadStatus(url, response.status()))
                         }
                     }
-                    Err(_) => UrlState::ConnectionFailed(url),
+                    Err(_) => Err(UrlError::ConnectionFailed(url)),
                 });
             });
 
             // Return the request result, or timeout.
             select! {
                 recv(r) -> msg => msg.unwrap(),
-                default(Duration::from_secs(TIMEOUT_SECS)) => UrlState::TimedOut(url2)
+                default(Duration::from_secs(TIMEOUT_SECS)) => Err(UrlError::TimedOut(url2))
             }
         }
-        Err(_) => UrlState::Malformed(path.to_owned()),
+        Err(_) => Err(UrlError::Malformed(path.to_owned())),
     }
 }
 

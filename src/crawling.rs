@@ -5,17 +5,17 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use url::Url;
 
-use crate::fetching::{fetch_all_urls, url_status, UrlState};
+use crate::fetching::{fetch_all_urls, url_status, UrlError};
 
 pub struct Crawler {
     active_count: Arc<Mutex<i32>>,
-    url_states: Receiver<UrlState>,
+    url_states: Receiver<Result<Url, UrlError>>,
 }
 
 impl Iterator for Crawler {
-    type Item = UrlState;
+    type Item = Result<Url, UrlError>;
 
-    fn next(&mut self) -> Option<UrlState> {
+    fn next(&mut self) -> Option<Self::Item> {
         let backoff = Backoff::new();
         loop {
             match self.url_states.try_recv() {
@@ -51,7 +51,7 @@ fn crawl_worker_thread(
     url_r: Receiver<String>,
     visited: Arc<Mutex<HashSet<String>>>,
     active_count: Arc<Mutex<i32>>,
-    url_states: Sender<UrlState>,
+    url_states: Sender<Result<Url, UrlError>>,
 ) {
     loop {
         match url_r.try_recv() {
@@ -66,7 +66,7 @@ fn crawl_worker_thread(
                 let state = url_status(domain, &current);
 
                 // Fetch accessible URLs on the same domain and crawl them too.
-                if let UrlState::Accessible(ref url) = state.clone() {
+                if let Ok(ref url) = state.clone() {
                     if url.domain() == Some(domain) {
                         // Lock `visited` and see if we've already visited these discovered URLs.
                         let mut visited = visited.lock().unwrap();

@@ -4,8 +4,6 @@ use std::io::stdout;
 use std::io::Write;
 use url::Url;
 
-use crate::fetching::UrlState;
-
 mod crawling;
 mod fetching;
 mod parsing;
@@ -32,10 +30,10 @@ fn main() {
 
     for url_state in crawling::crawl(domain, &start_url) {
         match url_state {
-            UrlState::Accessible(_) => {
+            Ok(_) => {
                 success_count += 1;
             }
-            status => {
+            Err(status) => {
                 fail_count += 1;
                 println!("{}", status);
             }
