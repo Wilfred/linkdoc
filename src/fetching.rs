@@ -51,7 +51,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
             // Try to do the request.
             thread::spawn(move || {
-                let response = reqwest::get(url.as_str());
+                let response = reqwest::blocking::get(url.as_str());
 
                 let _ = s.send(match response {
                     Ok(response) => {
@@ -78,7 +78,7 @@ pub fn url_status(domain: &str, path: &str) -> UrlState {
 
 pub fn fetch_url(url: &Url) -> String {
     // Creating an outgoing request.
-    let mut res = reqwest::get(url.as_str()).expect("could not fetch URL");
+    let res = reqwest::blocking::get(url.as_str()).expect("could not fetch URL");
 
     // Read the body.
     match res.text() {
