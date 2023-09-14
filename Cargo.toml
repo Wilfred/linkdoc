@@ -3,6 +3,7 @@ name = "linkdoc"
 description = "Walks all the web pages in a domain to find dead links."
 version = "0.2.0"
 authors = ["Wilfred Hughes <me@wilfred.me.uk>"]
+license = "MIT"
 edition = "2021"
 
 [dependencies]
