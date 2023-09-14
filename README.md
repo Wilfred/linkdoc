@@ -9,7 +9,7 @@ GPL v2 or later license.
 
 ```bash
 $ cargo build
-$ cargo run http://www.wilfred.me.uk
+$ cargo run -- http://www.wilfred.me.uk
 ```
 
 ## Known bugs
