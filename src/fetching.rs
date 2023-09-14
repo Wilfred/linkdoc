@@ -88,6 +88,7 @@ pub fn fetch_url(url: &Url) -> String {
 pub struct FetchedUrls {
     pub urls: Vec<Url>,
     pub maybe_urls: Vec<String>,
+    pub malformed_urls: Vec<String>,
 }
 
 /// Fetch the requested URL, and return a list of all the URLs on the
@@ -95,10 +96,25 @@ pub struct FetchedUrls {
 /// in malformed URLs.
 pub fn fetch_all_urls(url: &Url) -> FetchedUrls {
     let html_src = fetch_url(url);
-    let urls = parsing::get_urls(&html_src);
+    let maybe_urls = parsing::get_urls(&html_src);
+
+    let mut urls = vec![];
+    let mut malformed_urls = vec![];
+
+    if let Some(domain) = url.domain() {
+        for maybe_url in maybe_urls.clone() {
+            match build_url(domain, &maybe_url) {
+                Ok(url) => urls.push(url),
+                Err(_) => {
+                    malformed_urls.push(maybe_url);
+                }
+            }
+        }
+    }
 
     FetchedUrls {
-        urls: vec![],
-        maybe_urls: urls,
+        urls,
+        maybe_urls,
+        malformed_urls,
     }
 }
