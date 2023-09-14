@@ -72,6 +72,12 @@ fn crawl_worker_thread(
                         let mut visited = visited.lock().unwrap();
 
                         let fetched_urls = fetch_all_urls(url);
+                        for malformed_url in fetched_urls.malformed_urls {
+                            url_states
+                                .send(Err(UrlError::Malformed(malformed_url)))
+                                .unwrap();
+                        }
+
                         for new_url in fetched_urls.maybe_urls {
                             if !visited.contains(&new_url) {
                                 visited.insert(new_url.clone());
