@@ -85,10 +85,20 @@ pub fn fetch_url(url: &Url) -> String {
     }
 }
 
+pub struct FetchedUrls {
+    pub urls: Vec<Url>,
+    pub maybe_urls: Vec<String>,
+}
+
 /// Fetch the requested URL, and return a list of all the URLs on the
 /// page. We deliberately return strings because we're also interested
 /// in malformed URLs.
-pub fn fetch_all_urls(url: &Url) -> Vec<String> {
+pub fn fetch_all_urls(url: &Url) -> FetchedUrls {
     let html_src = fetch_url(url);
-    parsing::get_urls(&html_src)
+    let urls = parsing::get_urls(&html_src);
+
+    FetchedUrls {
+        urls: vec![],
+        maybe_urls: urls,
+    }
 }

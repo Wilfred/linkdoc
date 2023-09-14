@@ -71,7 +71,8 @@ fn crawl_worker_thread(
                         // Lock `visited` and see if we've already visited these discovered URLs.
                         let mut visited = visited.lock().unwrap();
 
-                        for new_url in fetch_all_urls(url) {
+                        let fetched_urls = fetch_all_urls(url);
+                        for new_url in fetched_urls.maybe_urls {
                             if !visited.contains(&new_url) {
                                 visited.insert(new_url.clone());
                                 url_s.send(new_url).unwrap();
