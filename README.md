@@ -1,7 +1,5 @@
 # Link Doctor
 
-[![Build Status](https://travis-ci.org/Wilfred/linkdoc.svg?branch=master)](https://travis-ci.org/Wilfred/linkdoc)
-
 A simple Rust program for checking for dead links. Inspired by
 [linkchecker](http://wummel.github.io/linkchecker/).
 
