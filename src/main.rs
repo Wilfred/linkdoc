@@ -1,4 +1,4 @@
-use clap::{App, Arg, crate_authors, crate_version, crate_description};
+use clap::{crate_authors, crate_description, crate_version, App, Arg};
 use colored::*;
 use std::io::stdout;
 use std::io::Write;
