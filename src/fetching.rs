@@ -40,36 +40,32 @@ fn build_url(domain: &str, path: &str) -> Result<Url, ParseError> {
 
 const TIMEOUT_SECS: u64 = 10;
 
-pub fn url_status(domain: &str, path: &str) -> Result<Url, UrlError> {
-    match build_url(domain, path) {
-        Ok(url) => {
-            let (s, r) = unbounded();
-            let url2 = url.clone();
+pub fn url_status(url: &Url) -> Result<Url, UrlError> {
+    let (s, r) = unbounded();
+    let url = url.clone();
+    let url2 = url.clone();
 
-            // Try to do the request.
-            thread::spawn(move || {
-                let response = reqwest::blocking::get(url.as_str());
+    // Try to do the request.
+    thread::spawn(move || {
+        let response = reqwest::blocking::get(url.clone());
 
-                let _ = s.send(match response {
-                    Ok(response) => {
-                        if response.status().is_success() {
-                            Ok(url)
-                        } else {
-                            // TODO: allow redirects unless they're circular
-                            Err(UrlError::BadStatus(url, response.status()))
-                        }
-                    }
-                    Err(_) => Err(UrlError::ConnectionFailed(url)),
-                });
-            });
-
-            // Return the request result, or timeout.
-            select! {
-                recv(r) -> msg => msg.unwrap(),
-                default(Duration::from_secs(TIMEOUT_SECS)) => Err(UrlError::TimedOut(url2))
+        let _ = s.send(match response {
+            Ok(response) => {
+                if response.status().is_success() {
+                    Ok(url)
+                } else {
+                    // TODO: allow redirects unless they're circular
+                    Err(UrlError::BadStatus(url, response.status()))
+                }
             }
-        }
-        Err(_) => Err(UrlError::Malformed(path.to_owned())),
+            Err(_) => Err(UrlError::ConnectionFailed(url)),
+        });
+    });
+
+    // Return the request result, or timeout.
+    select! {
+        recv(r) -> msg => msg.unwrap().map(|u| u.clone()),
+        default(Duration::from_secs(TIMEOUT_SECS)) => Err(UrlError::TimedOut(url2.clone()))
     }
 }
 

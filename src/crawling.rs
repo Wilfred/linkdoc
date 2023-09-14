@@ -47,9 +47,9 @@ const CRAWL_THREADS: i32 = 10;
 /// `url_s` channel.
 fn crawl_worker_thread(
     domain: &str,
-    url_s: Sender<String>,
-    url_r: Receiver<String>,
-    visited: Arc<Mutex<HashSet<String>>>,
+    url_s: Sender<Url>,
+    url_r: Receiver<Url>,
+    visited: Arc<Mutex<HashSet<Url>>>,
     active_count: Arc<Mutex<i32>>,
     url_states: Sender<Result<Url, UrlError>>,
 ) {
@@ -63,7 +63,7 @@ fn crawl_worker_thread(
                 }
 
                 // TODO: we are fetching the URL twice, which is silly.
-                let state = url_status(domain, &current);
+                let state = url_status(&current);
 
                 // Fetch accessible URLs on the same domain and crawl them too.
                 if let Ok(ref url) = state.clone() {
@@ -78,7 +78,7 @@ fn crawl_worker_thread(
                                 .unwrap();
                         }
 
-                        for new_url in fetched_urls.maybe_urls {
+                        for new_url in fetched_urls.urls {
                             if !visited.contains(&new_url) {
                                 visited.insert(new_url.clone());
                                 url_s.send(new_url).unwrap();
@@ -118,14 +118,13 @@ pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
     let active_count = Arc::new(Mutex::new(0));
 
     let mut visited = HashSet::with_capacity(1);
-    visited.insert(start_url.as_str().into());
+    visited.insert(start_url.clone());
     let visited = Arc::new(Mutex::new(visited));
 
     let (url_state_s, url_state_r) = unbounded();
 
-    // TODO: visit_s should be a Sender<Url>.
     let (visit_s, visit_r) = unbounded();
-    visit_s.send(start_url.as_str().into()).unwrap();
+    visit_s.send(start_url.to_owned()).unwrap();
 
     let crawler = Crawler {
         active_count: active_count.clone(),
