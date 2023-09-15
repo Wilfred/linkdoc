@@ -4,6 +4,7 @@ use reqwest::StatusCode;
 use std::fmt;
 use std::thread;
 use std::time::Duration;
+use tokio::time::timeout;
 use url::Url;
 
 #[derive(Debug, Clone)]
@@ -33,6 +34,31 @@ impl fmt::Display for UrlError {
 }
 
 const TIMEOUT_SECS: u64 = 10;
+
+pub async fn url_fetch(url: &Url) -> Result<String, UrlError> {
+    let response = match timeout(Duration::from_secs(TIMEOUT_SECS), reqwest::get(url.clone())).await
+    {
+        Ok(response) => response,
+        Err(_) => return Err(UrlError::TimedOut(url.clone())),
+    };
+
+    let response = match response {
+        Ok(response) => {
+            if !response.status().is_success() {
+                // TODO: allow redirects unless they're circular
+                return Err(UrlError::BadStatus(url.clone(), response.status()));
+            }
+
+            response
+        }
+        Err(_) => return Err(UrlError::ConnectionFailed(url.clone())),
+    };
+
+    match response.text().await {
+        Ok(s) => Ok(s),
+        Err(_) => Err(UrlError::InvalidText(url.clone())),
+    }
+}
 
 pub fn url_status(url: &Url) -> Result<String, UrlError> {
     let (s, r) = unbounded();

@@ -8,6 +8,14 @@ mod crawling;
 mod fetching;
 mod parsing;
 
+#[tokio::main]
+async fn my_main() -> Result<(), Box<dyn std::error::Error>> {
+    let url_s = "http://www.example.com";
+    let start_url = Url::parse(url_s).unwrap();
+
+    Ok(())
+}
+
 fn main() {
     let matches = App::new("LinkDoctor")
         .version(crate_version!())
