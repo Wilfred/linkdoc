@@ -66,12 +66,12 @@ fn crawl_worker_thread(
                 let state = url_status(&current);
 
                 // Fetch accessible URLs on the same domain and crawl them too.
-                if let Ok(html_src) = state.clone() {
+                if let Ok(ref html_src) = state {
                     if current.domain() == Some(domain) {
                         // Lock `visited` and see if we've already visited these discovered URLs.
                         let mut visited = visited.lock().unwrap();
 
-                        let parsed_urls = get_parsed_urls(&html_src, domain);
+                        let parsed_urls = get_parsed_urls(html_src, domain);
                         for malformed_url in parsed_urls.malformed_urls {
                             url_states
                                 .send(Err(UrlError::Malformed(malformed_url)))

@@ -46,7 +46,7 @@ pub struct ParsedUrls {
 
 /// Extract all the URLs from `html_src`.
 pub fn get_parsed_urls(html_src: &str, domain: &str) -> ParsedUrls {
-    let maybe_urls = get_urls(&html_src);
+    let maybe_urls = get_urls(html_src);
 
     let mut urls = vec![];
     let mut malformed_urls = vec![];
