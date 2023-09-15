@@ -5,7 +5,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use url::Url;
 
-use crate::fetching::{fetch_all_urls, url_status, UrlError};
+use crate::fetching::{url_status, UrlError};
+use crate::parsing::get_parsed_urls;
 
 pub struct Crawler {
     active_count: Arc<Mutex<i32>>,
@@ -70,14 +71,14 @@ fn crawl_worker_thread(
                         // Lock `visited` and see if we've already visited these discovered URLs.
                         let mut visited = visited.lock().unwrap();
 
-                        let fetched_urls = fetch_all_urls(&html_src, domain);
-                        for malformed_url in fetched_urls.malformed_urls {
+                        let parsed_urls = get_parsed_urls(&html_src, domain);
+                        for malformed_url in parsed_urls.malformed_urls {
                             url_states
                                 .send(Err(UrlError::Malformed(malformed_url)))
                                 .unwrap();
                         }
 
-                        for new_url in fetched_urls.urls {
+                        for new_url in parsed_urls.urls {
                             if !visited.contains(&new_url) {
                                 visited.insert(new_url.clone());
                                 url_s.send(new_url).unwrap();
