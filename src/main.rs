@@ -2,6 +2,7 @@ use clap::{crate_authors, crate_description, crate_version, App, Arg};
 use colored::*;
 use std::io::stdout;
 use std::io::Write;
+use tokio_stream::StreamExt;
 use url::Url;
 
 mod crawling;
@@ -9,14 +10,7 @@ mod fetching;
 mod parsing;
 
 #[tokio::main]
-async fn my_main() -> Result<(), Box<dyn std::error::Error>> {
-    let url_s = "http://www.example.com";
-    let start_url = Url::parse(url_s).unwrap();
-
-    Ok(())
-}
-
-fn main() {
+async fn main() {
     let matches = App::new("LinkDoctor")
         .version(crate_version!())
         .about(crate_description!())
@@ -36,7 +30,8 @@ fn main() {
     let mut success_count = 0;
     let mut fail_count = 0;
 
-    for url_state in crawling::crawl(domain, &start_url) {
+    let mut crawler = crawling::async_crawl(domain, &start_url);
+    while let Some(url_state) = crawler.next().await {
         match url_state {
             Ok(_) => {
                 success_count += 1;
