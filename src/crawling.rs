@@ -10,11 +10,11 @@ use crate::parsing::get_parsed_urls;
 
 pub struct Crawler {
     active_count: Arc<Mutex<i32>>,
-    url_states: Receiver<Result<String, UrlError>>,
+    url_states: Receiver<Result<(), UrlError>>,
 }
 
 impl Iterator for Crawler {
-    type Item = Result<String, UrlError>;
+    type Item = Result<(), UrlError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let backoff = Backoff::new();
@@ -52,7 +52,7 @@ fn crawl_worker_thread(
     url_r: Receiver<Url>,
     visited: Arc<Mutex<HashSet<Url>>>,
     active_count: Arc<Mutex<i32>>,
-    url_states: Sender<Result<String, UrlError>>,
+    url_states: Sender<Result<(), UrlError>>,
 ) {
     loop {
         match url_r.try_recv() {
@@ -94,7 +94,7 @@ fn crawl_worker_thread(
                     assert!(*active_count >= 0);
                 }
 
-                url_states.send(state).unwrap();
+                url_states.send(state.map(|_| ())).unwrap();
             }
             Err(_) => {
                 let active_count = active_count.lock().unwrap();
