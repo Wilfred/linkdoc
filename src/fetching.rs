@@ -11,6 +11,7 @@ use crate::parsing;
 #[derive(Debug, Clone)]
 pub enum UrlError {
     BadStatus(Url, StatusCode),
+    InvalidText(Url),
     ConnectionFailed(Url),
     TimedOut(Url),
     Malformed(String),
@@ -26,6 +27,7 @@ impl fmt::Display for UrlError {
             UrlError::ConnectionFailed(ref url) => {
                 format!("{} {} (connection failed)", cross, url).fmt(f)
             }
+            UrlError::InvalidText(ref url) => format!("{} {} (invalid text)", cross, url).fmt(f),
             UrlError::TimedOut(ref url) => format!("{} {} (timed out)", cross, url).fmt(f),
             UrlError::Malformed(ref url) => format!("{} {} (malformed)", cross, url).fmt(f),
         }
