@@ -42,7 +42,7 @@ fn build_url(domain: &str, path: &str) -> Result<Url, ParseError> {
 
 const TIMEOUT_SECS: u64 = 10;
 
-pub fn url_status(url: &Url) -> Result<Url, UrlError> {
+pub fn url_status(url: &Url) -> Result<String, UrlError> {
     let (s, r) = unbounded();
     let url = url.clone();
     let url2 = url.clone();
@@ -54,7 +54,10 @@ pub fn url_status(url: &Url) -> Result<Url, UrlError> {
         let _ = s.send(match response {
             Ok(response) => {
                 if response.status().is_success() {
-                    Ok(url)
+                    match response.text() {
+                        Ok(s) => Ok(s),
+                        Err(_) => Err(UrlError::InvalidText(url)),
+                    }
                 } else {
                     // TODO: allow redirects unless they're circular
                     Err(UrlError::BadStatus(url, response.status()))
@@ -71,43 +74,25 @@ pub fn url_status(url: &Url) -> Result<Url, UrlError> {
     }
 }
 
-pub fn fetch_url(url: &Url) -> String {
-    // Creating an outgoing request.
-    let res = reqwest::blocking::get(url.as_str()).expect("could not fetch URL");
-
-    // Read the body.
-    match res.text() {
-        Ok(body) => body,
-        // TODO: handle malformed data more gracefully.
-        Err(_) => String::new(),
-    }
-}
-
 pub struct FetchedUrls {
     pub urls: Vec<Url>,
     pub malformed_urls: Vec<String>,
 }
 
-/// Fetch the requested URL, and all the URLs on the
-/// page.
-pub fn fetch_all_urls(url: &Url) -> FetchedUrls {
-    let html_src = fetch_url(url);
+/// Extract all the URLs from `html_src`.
+pub fn fetch_all_urls(html_src: &str, domain: &str) -> FetchedUrls {
     let maybe_urls = parsing::get_urls(&html_src);
 
     let mut urls = vec![];
     let mut malformed_urls = vec![];
 
-    if let Some(domain) = url.domain() {
-        for maybe_url in maybe_urls.clone() {
-            match build_url(domain, &maybe_url) {
-                Ok(url) => urls.push(url),
-                Err(_) => {
-                    malformed_urls.push(maybe_url);
-                }
+    for maybe_url in maybe_urls.clone() {
+        match build_url(domain, &maybe_url) {
+            Ok(url) => urls.push(url),
+            Err(_) => {
+                malformed_urls.push(maybe_url);
             }
         }
-    } else {
-        malformed_urls.extend(maybe_urls);
     }
 
     FetchedUrls {

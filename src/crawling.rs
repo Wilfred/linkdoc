@@ -9,11 +9,11 @@ use crate::fetching::{fetch_all_urls, url_status, UrlError};
 
 pub struct Crawler {
     active_count: Arc<Mutex<i32>>,
-    url_states: Receiver<Result<Url, UrlError>>,
+    url_states: Receiver<Result<String, UrlError>>,
 }
 
 impl Iterator for Crawler {
-    type Item = Result<Url, UrlError>;
+    type Item = Result<String, UrlError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let backoff = Backoff::new();
@@ -51,7 +51,7 @@ fn crawl_worker_thread(
     url_r: Receiver<Url>,
     visited: Arc<Mutex<HashSet<Url>>>,
     active_count: Arc<Mutex<i32>>,
-    url_states: Sender<Result<Url, UrlError>>,
+    url_states: Sender<Result<String, UrlError>>,
 ) {
     loop {
         match url_r.try_recv() {
@@ -62,16 +62,15 @@ fn crawl_worker_thread(
                     assert!(*active_count <= CRAWL_THREADS);
                 }
 
-                // TODO: we are fetching the URL twice, which is silly.
                 let state = url_status(&current);
 
                 // Fetch accessible URLs on the same domain and crawl them too.
-                if let Ok(ref url) = state.clone() {
-                    if url.domain() == Some(domain) {
+                if let Ok(html_src) = state.clone() {
+                    if current.domain() == Some(domain) {
                         // Lock `visited` and see if we've already visited these discovered URLs.
                         let mut visited = visited.lock().unwrap();
 
-                        let fetched_urls = fetch_all_urls(url);
+                        let fetched_urls = fetch_all_urls(&html_src, domain);
                         for malformed_url in fetched_urls.malformed_urls {
                             url_states
                                 .send(Err(UrlError::Malformed(malformed_url)))
