@@ -114,7 +114,7 @@ fn crawl_worker_thread(
 
 /// Starting at start_url, recursively iterate over all the URLs which match
 /// the domain, and return an iterator of their URL status.
-pub fn crawl(domain: &str, start_url: &Url) -> Crawler {
+pub fn crawl(domain: &str, start_url: &Url) -> impl Iterator<Item = Result<(), UrlError>> {
     let active_count = Arc::new(Mutex::new(0));
 
     let mut visited = HashSet::with_capacity(1);
