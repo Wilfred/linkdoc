@@ -170,7 +170,11 @@ pub fn async_crawl(domain: &str, start_url: &Url) -> AsyncCrawler {
     let url_state_s = url_state_s.clone();
     let visit_r = visit_r.clone();
     let visit_s = visit_s.clone();
-    tokio::spawn(async move {
+    // spawn_crawl_tasks is a synchronous loop that never yields, so it
+    // must not run on an async worker thread: it would occupy the
+    // worker forever, and the tasks it spawns would be queued on that
+    // same worker and never run.
+    tokio::task::spawn_blocking(move || {
         spawn_crawl_tasks(
             &domain,
             visit_s,
